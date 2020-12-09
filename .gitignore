@@ -1,9 +1,9 @@
 *
 
-!**/*.png
-!**/*.jpg
-!**/*.vhd
-!**/*.qpf
-!**/*.qsf
-!**/*.sdc
-!**/*.do
+!*.png
+!*.jpg
+!*.vhd
+!*.qpf
+!*.qsf
+!*.sdc
+!*.do
