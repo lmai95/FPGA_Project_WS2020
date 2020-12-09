@@ -1,6 +1,7 @@
 *
 
 !.gitignore
+!*.url
 !*.png
 !*.jpg
 !*.vhd
