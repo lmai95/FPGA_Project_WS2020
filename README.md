@@ -28,7 +28,7 @@ Die SPI Schnittstelle wird ...
 Hierfür soll eine RS232-Schnittstelle implementiert werden.
 
 ## VGA Ausgabe
-Auf dem terasic DE0 Board ist ein VGA-Schnittstelle mit drei (RGB)  4 Bit Digital/Analog Converter vorbereitet, diese soll verwendet werden.  Außerdem werden noch h_sync und v_sync Signal benötigt welche ebenfalls bereits vorbereitet sind.
+Auf dem terasic DE0 Board ist ein VGA-Schnittstelle mit drei (RGB)  4 Bit Digital/Analog Converter vorbereitet, diese soll verwendet werden.  Außerdem werden noch h_sync und v_sync Signal benötigt welche ebenfalls bereits vorbereitet sind.![DE0 Board VGA Port](https://raw.githubusercontent.com/lmai95/FPGA_Project_WS2020/interface_video/documentation/pics/VGA_DA_Wandler_DE_0.jpg)
 ### Auflösung
 Da auf dem DE0 Board ein 50 MHz Oszillator verbaut ist wird eine Auflösung von 800 x 600 mit einer Frequenz von 72 Hz gewählt.
 siehe [tinyvga.com](http://tinyvga.com/vga-timing/800x600@72Hz)
@@ -61,7 +61,7 @@ Auf Grund der Taktung des h_sync und v_sync Signals kann der Monitor erkennen we
 |Back porch	    |23	     |478,40
 |Whole frame	  |666	   |13852,80
 
-Das Timing wird hierbei mit zwei Zählern erreicht welche von 0 bis 1040 und 0 bis 666 zählen erreicht, abhängig wird das passende Signal an die VGA Schnittstelle ausgegeben. 
+Das Timing wird hierbei mit zwei Zählern erreicht welche von 0 bis 1040 und 0 bis 666 zählen erreicht, abhängig wird das passende Signal an die VGA Schnittstelle ausgegeben.
 
 ### Framebuffer
 Der Framebuffer besteht mindestens aus drei `800 x 600 x 4 Bit = 1,92Mbit => 240kbyte`  großen Speichern.
