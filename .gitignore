@@ -1,5 +1,6 @@
 *
 
+!.gitignore
 !*.png
 !*.jpg
 !*.vhd
@@ -7,3 +8,4 @@
 !*.qsf
 !*.sdc
 !*.do
+!*/
