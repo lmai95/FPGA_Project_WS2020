@@ -51,8 +51,8 @@ Auf Grund der Taktung des h_sync und v_sync Signals kann der Monitor erkennen we
 |Scanline part	|Pixels	|Time [µs]| Start-Pixel| Stop-Pixel|
 |---:           |:---:  |---:| ---|---|
 |Visible area	  |800	  |16,00 | 0 | 799 |
-|Front porch    |	56	  |1,12  | 800 |855 |
-|Sync pulse     |	120	  |2,40  | 856 |975 |
+|Front porch    |	56	  |1,12  | 800 |856 |
+|Sync pulse     |	120	  |2,40  | 856 |976 |
 |Back porch     |	64	  |1,28  | 976 |1040 |
 |__Whole line__     |	__1040__  |__20,80__ |
 

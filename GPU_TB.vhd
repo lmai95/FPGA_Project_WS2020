@@ -13,7 +13,7 @@ end entity GPU_TB;
 
 architecture structure of GPU_TB IS
 signal CLK_50MHz : std_logic;
-
+signal Reset : std_logic;
 begin
 DUT: entity work.GPU(behave)
       port map(
@@ -21,9 +21,10 @@ DUT: entity work.GPU(behave)
 				Reset => Reset
 			);
 
-Tester: entity work.VGA_Tester(test)
+Tester: entity work.GPU_Tester(test)
 				port map(
-				  CLK_50MHz => CLK_50MHz
+				  CLK_50MHz => CLK_50MHz,
+					Reset => Reset
 				);
 
 

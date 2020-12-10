@@ -19,7 +19,7 @@ entity GPU IS
 	);
 end entity GPU;
 
-architecture structure of GPU IS
+architecture behave of GPU IS
 begin
 VGA0: entity work.VGA(behave)
   port map (
@@ -31,4 +31,4 @@ VGA0: entity work.VGA(behave)
     v_sync => v_sync,
     out_px => out_px
     );
-end architecture structure;
+end architecture behave;

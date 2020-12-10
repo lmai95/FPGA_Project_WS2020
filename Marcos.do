@@ -1,9 +1,17 @@
 #Macros to test the VGA_Signal
-add wave  \
-sim:/vga/CLK_50MHz \
-sim:/vga/h_sync \
-sim:/vga/v_sync \
-sim:/vga/internal_pos \
-sim:/vga/out_px \
 
-run 2ms
+radix signal gpu_tb/DUT/VGA0/out_px  hexadecimal
+
+
+
+add wave \
+sim:/gpu_tb/DUT/VGA0/current_Position \
+sim:/gpu_tb/DUT/VGA0/h_sync \
+sim:/gpu_tb/DUT/VGA0/v_sync \
+sim:/gpu_tb/CLK_50MHz \
+sim:/gpu_tb/DUT/VGA0/out_px \
+sim:/gpu_tb/DUT/VGA0/v \
+sim:/gpu_tb/DUT/VGA0/h \
+sim:/gpu_tb/Reset
+run 30ms
+wave zoom full

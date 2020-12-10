@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use work.LM_VGA.all;
 
 
-entity VGA_Tester IS
+entity GPU_Tester IS
 	generic (
 		T		: time := 20ns;
 		TCO 	: time := 5ns;
@@ -13,9 +13,9 @@ entity VGA_Tester IS
     Reset : out std_logic := '0';
 		CLK_50MHz : out  std_logic := '0'
 	);
-end entity VGA_Tester;
+end entity GPU_Tester;
 
-architecture test of VGA_Tester is
+architecture test of GPU_Tester is
 	signal iCLk : std_logic:='0';
 
 BEGIN
@@ -26,7 +26,7 @@ BEGIN
 	wait for T/2;
 END PROCESS Clockgen;
 
-Reset <= '0', '1' after 500ns , '0' after 1000ns ;
+Reset <=  '1' , '0' after 1ns ;
 CLK_50MHz <= iClK;
 
 
