@@ -29,8 +29,8 @@ entity VGA IS
 end entity VGA;
 
 architecture behave OF VGA IS
-  signal frame_buf_A : gfx_buffer := (others => (others => black )); --https://www.nandland.com/vhdl/examples/example-array-type-vhdl.html
-  signal frame_buf_B : gfx_buffer := (others => (others => black ));
+  --signal frame_buf_A : gfx_buffer := (others => (others => black )); --https://www.nandland.com/vhdl/examples/example-array-type-vhdl.html
+  --signal frame_buf_B : gfx_buffer := (others => (others => black ));
   signal internal_pos : Position := OO;
   signal i_h_sync : std_logic;
   signal i_v_sync : std_logic;
@@ -44,11 +44,11 @@ clocked_proc: PROCESS (CLK_50MHz, Reset)
   			ELSIF rising_edge(CLK_50MHz) THEN
           --if inside of visible area send px value
           if (internal_pos.X <= h_visible AND internal_pos.Y <= v_visible AND (NOT A_or_B)) then
-            internal_px <=  frame_buf_A(internal_pos.X, internal_pos.Y);
-            frame_buf_B(internal_pos.X, internal_pos.Y) <= in_col;
+            internal_px <=  black;--frame_buf_A(internal_pos.X, internal_pos.Y);
+            --frame_buf_B(internal_pos.X, internal_pos.Y) <= in_col;
           elsif (internal_pos.X <= h_visible AND internal_pos.Y <= v_visible AND  A_or_B) then
-            internal_px <=  frame_buf_B(internal_pos.X, internal_pos.Y);
-            frame_buf_A(internal_pos.X, internal_pos.Y) <= in_col;
+            internal_px <=  white; --frame_buf_B(internal_pos.X, internal_pos.Y);
+            --frame_buf_A(internal_pos.X, internal_pos.Y) <= in_col;
           else
             internal_px <= black;
           end if;
