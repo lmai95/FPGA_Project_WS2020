@@ -4,11 +4,11 @@
 
 Eingänge:
 
-*x-achse (signed integer range) :in m/s²
+* x-achse (signed integer range) :in m/s²
 
-*y-achse (signed integer range) :in m/s²
+* y-achse (signed integer range) :in m/s²
 
-*z-achse (signed integer range) :in m/s²
+* z-achse (signed integer range) :in m/s²
 
 
 
@@ -16,23 +16,23 @@ Eingänge:
 
 Eingänge:
 
-*RX_EN (Bit) 
+* RX_EN (Bit) 
 
-*RX_DATA[N...0]
+* RX_DATA[N...0]
 
-*RX_ERROR
+* RX_ERROR
 
-*TX_BUSY
+* TX_BUSY
 
 
 Ausgänge:
 
-*CLK
+* CLK
 
-*Reset
+* Reset
 
-*TX_EN (Bit)
+* TX_EN (Bit)
 
-*TX_DATA[N...0]
+* TX_DATA[N...0]
 
-*RX_BUSY
+* RX_BUSY
