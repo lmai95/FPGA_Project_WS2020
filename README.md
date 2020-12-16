@@ -4,34 +4,35 @@
 
 Eingänge:
 
-x-achse (signed integer range) :in m/s²
+*x-achse (signed integer range) :in m/s²
 
-y-achse (signed integer range) :in m/s²
+*y-achse (signed integer range) :in m/s²
 
-z-achse (signed integer range) :in m/s²
+*z-achse (signed integer range) :in m/s²
 
-Ausgänge:
 
 
 ---------UART ---------------------------
 
 Eingänge:
 
-RX_EN (Bit) 
+*RX_EN (Bit) 
 
-RX_DATA[N...0]
+*RX_DATA[N...0]
 
-RX_ERROR
+*RX_ERROR
 
-TX_BUSY
+*TX_BUSY
+
 
 Ausgänge:
-CLK
 
-Reset
+*CLK
 
-TX_EN (Bit)
+*Reset
 
-TX_DATA[N...0]
+*TX_EN (Bit)
 
-RX_BUSY
+*TX_DATA[N...0]
+
+*RX_BUSY
