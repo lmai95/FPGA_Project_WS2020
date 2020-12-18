@@ -11,7 +11,8 @@ entity GPU_Tester IS
 	);
 	port(
     Reset : out std_logic := '0';
-		CLK_50MHz : out  std_logic := '0'
+		CLK_50MHz : out  std_logic := '0';
+		enable_plotter : out std_logic := '0'
 	);
 end entity GPU_Tester;
 
@@ -27,6 +28,7 @@ BEGIN
 END PROCESS Clockgen;
 
 Reset <=  '1' , '0' after 1ns ;
+enable_plotter <= '0' , '1' after 1us, '0' after 2us;
 CLK_50MHz <= iClK;
 
 

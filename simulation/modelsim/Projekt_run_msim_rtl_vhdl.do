@@ -6,6 +6,9 @@ vlib rtl_work
 vmap work rtl_work
 
 vcom -93 -work work {C:/Users/Lukas/Documents/MEGA/Studium/8_Semester/FPGA_Project_WS2020/VGA_typ.vhd}
+vcom -93 -work work {C:/Users/Lukas/Documents/MEGA/Studium/8_Semester/FPGA_Project_WS2020/Symbols.vhd}
+vcom -93 -work work {C:/Users/Lukas/Documents/MEGA/Studium/8_Semester/FPGA_Project_WS2020/frame_buffer.vhd}
+vcom -93 -work work {C:/Users/Lukas/Documents/MEGA/Studium/8_Semester/FPGA_Project_WS2020/plotter.vhd}
 vcom -93 -work work {C:/Users/Lukas/Documents/MEGA/Studium/8_Semester/FPGA_Project_WS2020/VGA.vhd}
 vcom -93 -work work {C:/Users/Lukas/Documents/MEGA/Studium/8_Semester/FPGA_Project_WS2020/GPU.vhd}
 
