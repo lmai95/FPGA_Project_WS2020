@@ -8,35 +8,35 @@ generic(
   MaxBitPerByteWhiteOutput : integer := 223   --Legt die maximale Zeilenlaenge in Bit fest; 28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
 );
 port(
-  EN : in std_logic := '1';    --Enable Signal des AsciiPrinters
-  Reset : in std_logic := '0'; --Reset Signal des AsciiPrinters
-  Clk : in std_logic;
+  EN 	  	: in std_logic := '1';    --Enable Signal des AsciiPrinters
+  Reset 	: in std_logic := '0'; --Reset Signal des AsciiPrinters
+  Clk   	: in std_logic;
 
   data_valid : in std_logic;--data valid des Sensor Kontroll-Modul
-  acc_x : in integer; 		  --x-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  acc_y : in integer; 		  --y-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  acc_z : in integer; 		  --z-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  TX_BUSY : in std_logic;                             --TX_Busy der UART
-  TX_EN : out std_logic := '0';                       --TX_EN der UART
-  TX_DATA : out std_logic_vector(7 downto 0):= x"00"  --Eingangsbyte der UART; LSB hat Index 0
+  acc_x 		 : in integer; 		  --x-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_y 		 : in integer; 		  --y-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_z 		 : in integer; 		  --z-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  TX_BUSY 	 : in std_logic;                             --TX_Busy der UART
+  TX_EN 		 : out std_logic := '0';                       --TX_EN der UART
+  TX_DATA 	 : out std_logic_vector(7 downto 0):= x"00"  --Eingangsbyte der UART; LSB hat Index 0
 );
 end entity AsciiPrinter;
 
 
-architecture behave of  AsciiPrinter is
+architecture behave of AsciiPrinter is
   type DataSample is record
     acc_x, acc_y, acc_z : integer RANGE 0 to 65536;--ToDo: Eigentlich ist ein kleinere Wertbereich aussreichend
   end record;
   type DataSampleBuffer is array (BufferSize downto 0) of DataSample;
 
-  signal IntToLogicVectorReady : std_logic := '0';
-  signal IntToLogicVectorIntInput : integer RANGE 0 to 65536;--ToDo: Eigentlich ist ein kleinere Wertbereich aussreichend
-  signal IntToLogicVectorBinOutput : std_logic_vector(47 downto 0) := (others =>'0');
+  signal IntToLogicVectorReady 		: std_logic := '0';
+  signal IntToLogicVectorIntInput 	: integer RANGE 0 to 65536;--ToDo: Eigentlich ist ein kleinere Wertbereich aussreichend
+  signal IntToLogicVectorBinOutput 	: std_logic_vector(47 downto 0) := (others =>'0');
 
   signal SumRejectedDataFiFo1 : integer := 0;		--Zaehler fuer die Anzahl der nicht verarbeitbaren Messungen waehrend Daten in FiFo1 geasammelt wurden
   signal SumRejectedDataFiFo2 : integer := 0;		--Zaehler fuer die Anzahl der nicht verarbeitbaren Messungen waehrend Daten in FiFo2 geasammelt wurden
-  signal FiFo1 : DataSampleBuffer;            	--Buffer1 zum zwischenspeichern der eingehenden Daten
-  signal FiFo2 : DataSampleBuffer;              --Buffer2 zum zwischenspeichern der eingehenden Daten
+  signal FiFo1 : DataSampleBuffer;            		--Buffer1 zum zwischenspeichern der eingehenden Daten
+  signal FiFo2 : DataSampleBuffer;              	--Buffer2 zum zwischenspeichern der eingehenden Daten
   signal PrepareNextLineActivSet : std_logic := '0';
   signal PrepareNextLineActivReset1 : std_logic := '0';
 
@@ -56,7 +56,7 @@ architecture behave of  AsciiPrinter is
 
 BEGIN
   --Wandelt eine signed Integer Zahl in ASCI Zeichen um. Annahme 16Bit integer daher mit Vorzeichen 6-ASCI Zeichen
-  IntToLogicVector: process(Clk)
+  IntToLogicVector: process(Clk,Reset)
     variable Step : integer RANGE 0 to 9 := 0;
     variable uint_input : integer RANGE 0 to 65536;--ToDo: Eigentlich ist ein kleinere Wertbereich aussreichend
     variable Digit : integer RANGE 0 to 9 := 0;
@@ -173,7 +173,19 @@ BEGIN
   BEGIN
     IF (PrepareNextLineActivSet = '1') THEN
       PrepareNextLineActiv <= '1';
-    END IF;
+	 ELSE
+		PrepareNextLineActiv <= '0';
+	 END IF;
+	  
+	 --xDDFPNLAS: entity work.xDDF(behave) 
+		--port map(
+		--D => PrepareNextLineActivSet,
+		--EN => '1',
+		--Reste => Reset,
+		--Clk => Clk,
+		--Q => PrepareNextLineActiv
+		--);
+	 
     IF ((PrepareNextLineActivReset1 = '1') OR (PrepareNextLineActivReset2 = '1')) THEN
       PrepareNextLineActiv <= '0';
     END IF;
@@ -184,7 +196,8 @@ BEGIN
   --Anschliessend wird der Prozess ByteWhiteOutput angestossen. Ist aktiv falls EN = '1' und PrepareNextLineActiv = '1' ist
   --Fomrat der Ausgabe: "x:+/-_____ y:+/-_____ z:+/-_____\n\r"
   --Setzt PrepareNextLineReady auf '1' falls der gesamte inhalt der FiFo ausgegebn wurde
-  PrepareNextLine: process(Reset, EN, PrepareNextLineActiv, ByteWhiteOutputReady, IntToLogicVectorReady)
+  PrepareNextLine: process(Reset, EN, PrepareNextLineActiv, ByteWhiteOutputReady, IntToLogicVectorReady, 
+									PrepareNextLineSelectFiFo1, FiFo1, FiFo2, IntToLogicVectorBinOutput)
     variable iByteWhiteOutputBuffer : std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0');
     variable CurrentEntry : integer RANGE 0 to (BufferSize+1) := 0;
     variable Step : integer Range 0 to 3 := 0;
@@ -200,6 +213,8 @@ BEGIN
     ELSE
       PrepareNextLineActivReset2 <= '0';
       OutputActivReset1 <= '0';
+		PrepareNextLineReady <= '0';												--Test bzgl. Latches
+		OutputActivSet <= '1';
       IF ((EN = '1') AND (PrepareNextLineActiv = '1')) THEN
         OutputActivSet <= '0';
         IF(ByteWhiteOutputReady = '1') THEN
@@ -256,10 +271,11 @@ BEGIN
   SwitchByteWhiteOutput: process(OutputActivSet, OutputActivReset1, OutputActivReset2)
   BEGIN
     IF (OutputActivSet = '1') THEN
-      OutputActiv <= '1';
-    END IF;
-    IF ((OutputActivReset1 = '1') OR (OutputActivReset2 = '1')) THEN
+      OutputActiv <= '1';		
+    ELSIF ((OutputActivReset1 = '1') OR (OutputActivReset2 = '1')) THEN
       OutputActiv <= '0';
+	 --ELSE
+		--OutputActiv <= '0';
     END IF;
   END process SwitchByteWhiteOutput;
 
@@ -267,7 +283,7 @@ BEGIN
   --Gibt die Bytes aus ByteWhiteOutputBuffer einzel an die UART aus, wenn OutputActiv '1' und EN '1' ist
   --Sobald das Zeichen '\r' in ByteWhiteOutputBuffer erkannt wird stoppt die ausgabe
   --Setzt ByteWhiteOutputReady auf '1' wenn alle Bytes ausgegebn wurden
-  ByteWhiteOutput: process(Reset, EN, OutputActiv, TX_BUSY)
+  ByteWhiteOutput: process(Reset, EN, OutputActiv, TX_BUSY, iTX_DATA, ByteWhiteOutputBuffer)
     variable CurrentByte : integer RANGE 0 to 8 := 0; --Maximal 224 Bit pro Zeile
   BEGIN
     IF (Reset = '1') THEN
