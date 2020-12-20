@@ -19,6 +19,6 @@ end entity signal_processing_TESTER;
 architecture sim of signal_processing_TESTER is
 begin
   --example
-	S <= '0', '1' after 100ps, '0' after 200ps, '1' after 300ps;
-	R <= '0', '0' after 100ps, '1' after 200ps, '1' after 300ps;
+	--S <= '0', '1' after 100ps, '0' after 200ps, '1' after 300ps;
+	--R <= '0', '0' after 100ps, '1' after 200ps, '1' after 300ps;
 end architecture sim;
