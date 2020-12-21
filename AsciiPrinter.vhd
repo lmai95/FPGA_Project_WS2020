@@ -52,14 +52,22 @@ architecture behave of AsciiPrinter is
   signal ByteWhiteOutputBuffer : std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0'); --Speicher fuer die Ausgabe der naechsten Zeile; 28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
   signal ByteWhiteOutputReady : std_logic := '1';                                                       --Bei '1' Prozess ByteWhiteOutput kann neue Daten Uebertragen
   signal iTX_EN : std_logic := '0';                                                                     --internes Signal fuer den Ausgang TX_EN
-  signal iTX_DATA : std_logic_vector(7 downto 0) := x"00";                                              --internes Signal fuer den Ausgang TX_DATA
-
+  signal iTX_DATA : std_logic_vector(7 downto 0) := x"00";															  --internes Signal fuer den Ausgang TX_DATA
+  signal iiTX_DATA : std_logic_vector(7 downto 0) := x"00";   
+  
   signal StepPrepareNextLine : integer Range 0 to 3 := 0;
   signal NextStepPrepareNextLine : integer Range 0 to 3 := 0;
   signal iIntToLogicVectorIntInput : integer RANGE 0 to 65536;--ToDo: Eigentlich ist ein kleinere Wertbereich aussreichend
   signal CurrentEntry : integer RANGE 0 to (BufferSize+1) := 0;
   signal iCurrentEntry : integer RANGE 0 to (BufferSize+1) := 0;
   signal iByteWhiteOutputBuffer : std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0');
+  
+  signal Set1 : std_logic := '0';
+  signal Set2 : std_logic := '0';
+  signal Set3 : std_logic := '0';
+  
+  signal CurrentByte : integer RANGE 0 to 8 := 0; --Maximal 224 Bit pro Zeile
+  signal iCurrentByte : integer RANGE 0 to 8 := 0; --Maximal 224 Bit pro Zeile
 BEGIN
   --Wandelt eine signed Integer Zahl in ASCI Zeichen um. Annahme 16Bit integer daher mit Vorzeichen 6-ASCI Zeichen
   IntToLogicVector: process(Clk,Reset,IntToLogicVectorIntInput)
@@ -198,29 +206,41 @@ BEGIN
     END IF;
   END process SwitchPrepareNextLine;
 
+	
+   xDDFS: entity work. xDDF(behave)
+	 port map(
+	 D => Reset or Set1,
+	 EN => '1',
+	 Reset => NOT(Set1),
+	 Clk => Clk,
+	 Q => PrepareNextLineReady
+	 );
+	 
   --ToDo Ausgabe der beiden Zaehler mit der Anzahl der verworfenen Messungen
   --Bereitet die naechste Zeile zur Ausgabe, ueber den Prozess ByteWhiteOutput, mit den Daten von FiFo1 oder FiFo2 vor
   --Anschliessend wird der Prozess ByteWhiteOutput angestossen. Ist aktiv falls EN = '1' und PrepareNextLineActiv = '1' ist
   --Fomrat der Ausgabe: "x:+/-_____ y:+/-_____ z:+/-_____\n\r"
   --Setzt PrepareNextLineReady auf '1' falls der gesamte inhalt der FiFo ausgegebn wurde
-  PrepareNextLine: process(Reset, EN, PrepareNextLineActiv, ByteWhiteOutputReady, IntToLogicVectorReady,
+  PrepareNextLine: process(Reset, EN, PrepareNextLineActiv, ByteWhiteOutputReady, IntToLogicVectorReady, Clk,
 									PrepareNextLineSelectFiFo1, FiFo1, FiFo2, IntToLogicVectorBinOutput, iIntToLogicVectorIntInput, StepPrepareNextLine, NextStepPrepareNextLine, CurrentEntry, iCurrentEntry, ByteWhiteOutputBuffer)
   BEGIN
 	 IntToLogicVectorIntInput <= iIntToLogicVectorIntInput;
-    IF (Reset = '1') THEN
-      PrepareNextLineReady <= '1';
+	 IF (CurrentEntry >= (BufferSize+1)) THEN Set1<='1'; ELSE Set1<='0'; END IF;
+	
+	  IF (Reset = '1') THEN
+      --PrepareNextLineReady <= '1';
       PrepareNextLineActivReset2 <= '1';
       OutputActivSet <= '0';
       OutputActivReset1 <= '1';
       CurrentEntry <= 0;
       StepPrepareNextLine <= 0;
       iByteWhiteOutputBuffer <= (others =>'0');
-    ELSE
+     ELSE
 		iByteWhiteOutputBuffer <= ByteWhiteOutputBuffer;	--Achtung !!
       PrepareNextLineActivReset2 <= '0';
       OutputActivReset1 <= '0';
-		  PrepareNextLineReady <= '0';												--Test bzgl. Latches
-		  OutputActivSet <= '1';
+		  --PrepareNextLineReady <= '0';												--Test bzgl. Latches
+		  OutputActivSet <= '0';
 		  StepPrepareNextLine <= NextStepPrepareNextLine;
 		  CurrentEntry <= iCurrentEntry;
       IF ((EN = '1') AND (PrepareNextLineActiv = '1')) THEN
@@ -229,11 +249,11 @@ BEGIN
           IF (CurrentEntry >= (BufferSize+1)) THEN
             --Alle Eintraege im Puffer sind ausgegeben
             CurrentEntry <= 0;
-            PrepareNextLineReady <= '1';
+            --PrepareNextLineReady <= '1';
             PrepareNextLineActivReset2 <= '1';
           ELSE
             --Bereitet die naechste Zeile zur Ausgabe vor und triggert den Prozess ByteWhiteOutput
-            PrepareNextLineReady <= '0';
+            --PrepareNextLineReady <= '0';
             IF (StepPrepareNextLine = 0) THEN
               iByteWhiteOutputBuffer(223 downto 208) <= x"783A"; --Text "x:"
               IF (PrepareNextLineSelectFiFo1) THEN
@@ -289,44 +309,59 @@ BEGIN
     END IF;
   END process NextStatePrepareNextLine;
 
-  SwitchByteWhiteOutput: process(OutputActivSet, OutputActivReset1, OutputActivReset2)
-  BEGIN
-    IF (OutputActivSet = '1') THEN
-      OutputActiv <= '1';
-    ELSIF ((OutputActivReset1 = '1') OR (OutputActivReset2 = '1')) THEN
-      OutputActiv <= '0';
+  --SwitchByteWhiteOutput: process(OutputActivSet, OutputActivReset1, OutputActivReset2)
+  --BEGIN
+   -- IF (OutputActivSet = '1') THEN
+     -- OutputActiv <= '1';
+    --ELSIF ((OutputActivReset1 = '1') OR (OutputActivReset2 = '1')) THEN
+      --OutputActiv <= '0';
 	 --ELSE
 		--OutputActiv <= '0';
-    END IF;
-  END process SwitchByteWhiteOutput;
+    --END IF;
+  --END process SwitchByteWhiteOutput;
 
+  
+    
+xDDF2: entity work.xDDF(behave)
+		port map(
+		D => OutputActivSet,	--Hoffentlich reicht die Zeit ??
+		EN => '1',
+		Reset => OutputActivReset1 OR OutputActivReset2,	
+		Clk => Clk,
+		Q => OutputActiv
+		);  
+		
   --ToDo mit clock synchronisieren
   --Gibt die Bytes aus ByteWhiteOutputBuffer einzel an die UART aus, wenn OutputActiv '1' und EN '1' ist
   --Sobald das Zeichen '\r' in ByteWhiteOutputBuffer erkannt wird stoppt die ausgabe
   --Setzt ByteWhiteOutputReady auf '1' wenn alle Bytes ausgegebn wurden
-  ByteWhiteOutput: process(Reset, EN, OutputActiv, TX_BUSY, iTX_DATA, ByteWhiteOutputBuffer)
-    variable CurrentByte : integer RANGE 0 to 8 := 0; --Maximal 224 Bit pro Zeile
+  ByteWhiteOutput: process(Reset, EN, OutputActiv, TX_BUSY, iTX_DATA, iiTX_DATA, ByteWhiteOutputBuffer, iCurrentByte, CurrentByte)
   BEGIN
+	IF (TX_BUSY = '0' AND ((iCurrentByte >= 28) OR (iTX_DATA = x"0D"))) THEN Set2 <='1'; ELSE Set2 <= '0'; END IF;
+	IF (TX_BUSY = '0' AND ((iCurrentByte < 28) OR (iTX_DATA /= x"0D"))) THEN Set3 <='1'; ELSE Set3 <= '0'; END IF;
+  
     IF (Reset = '1') THEN
-      CurrentByte := 0;
+      iCurrentByte <= 0;
       OutputActivReset2 <= '1';
-      ByteWhiteOutputReady <= '1';
+      --ByteWhiteOutputReady <= '1';
       iTX_EN <= '0';
-      iTX_DATA <= x"00";
+      iiTX_DATA <= x"00";
     ELSE
+		iiTX_DATA <= iTX_DATA;
+		iCurrentByte <= CurrentByte;
       OutputActivReset2 <= '0';
       IF (EN = '1' AND OutputActiv = '1') THEN
         IF  (TX_BUSY = '0') THEN
-          IF ((CurrentByte >= 28) OR (iTX_DATA = x"0D")) THEN
+          IF ((iCurrentByte >= 28) OR (iiTX_DATA = x"0D")) THEN
             --Alle Bytes uebertragen
-            ByteWhiteOutputReady <= '1';
+            --ByteWhiteOutputReady <= '1';
             OutputActivReset2 <= '1';
-            CurrentByte := 0;
+            iCurrentByte <= 0;
           ELSE
             --Uebertraegt ein Byte
-            ByteWhiteOutputReady <= '0';
-            iTX_DATA <= ByteWhiteOutputBuffer( (MaxBitPerByteWhiteOutput-(8*CurrentByte)) DOWNTO (MaxBitPerByteWhiteOutput-(8*((CurrentByte+1))-1)) );
-            CurrentByte := CurrentByte + 1;
+            --ByteWhiteOutputReady <= '0';
+            iiTX_DATA <= ByteWhiteOutputBuffer( (MaxBitPerByteWhiteOutput-(8*CurrentByte)) DOWNTO (MaxBitPerByteWhiteOutput-(8*((CurrentByte+1))-1)) );
+            iCurrentByte <= iCurrentByte + 1;
           END IF;
         END IF;
         iTX_EN <= '1';
@@ -335,6 +370,17 @@ BEGIN
       END IF;
     END IF;
   END process ByteWhiteOutput;
+  iTX_DATA <= iiTX_DATA;
+  CurrentByte <= iCurrentByte;
   TX_EN <= iTX_EN;
   TX_DATA <= iTX_DATA;
+
+xDDF3: entity work.xDDF(behave)
+		port map(
+		D => Set2 or Reset,
+		EN => '1',
+		Reset => Set3,	
+		Clk => Clk,
+		Q => ByteWhiteOutputReady
+		);  
 end behave;
