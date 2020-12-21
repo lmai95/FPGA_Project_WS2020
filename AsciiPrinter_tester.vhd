@@ -54,7 +54,7 @@ BEGIN
     IF iCLK = '0' THEN
       Clockcount <= Clockcount + 1;
     end if;
-    wait for 500ns;
+    wait for 50us;
   end process ClockGenerator;
 
   --Simuliert die UART mit 115200 Baud; Dauer ~70µS um 8 Bit zu uebertragen
@@ -91,14 +91,14 @@ BEGIN
     ELSIF (Clockcount <= 43) THEN CurrentTestState<=2; CurrentTestValue<=3;--neue Daten
     ELSIF (Clockcount <= 54) THEN CurrentTestState<=1; CurrentTestValue<=3;
     ELSIF (Clockcount <= 55) THEN CurrentTestState<=2; CurrentTestValue<=1;--neu Daten
-    ELSE CurrentTestState<=2; CurrentTestValue<=1;
+    ELSE CurrentTestState<=1; CurrentTestValue<=1;
     END IF;
-    wait for 1000ns;
+    wait for 100us;
   END process Testing;
 
 
   Clk <= iClk;
-  iTX_BUSY <= iTX_BUSY;
+  TX_BUSY <= iTX_BUSY;
   EN <= TestStates(CurrentTestState).EN;
   Reset <= TestStates(CurrentTestState).Reset;
   data_valid <= TestStates(CurrentTestState).data_valid;
