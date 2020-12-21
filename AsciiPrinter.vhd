@@ -54,6 +54,8 @@ architecture behave of AsciiPrinter is
   signal iTX_EN : std_logic := '0';                                                                     --internes Signal fuer den Ausgang TX_EN
   signal iTX_DATA : std_logic_vector(7 downto 0) := x"00";                                              --internes Signal fuer den Ausgang TX_DATA
 
+  signal StepPrepareNextLine : integer Range 0 to 3 := 0;
+  
 BEGIN
   --Wandelt eine signed Integer Zahl in ASCI Zeichen um. Annahme 16Bit integer daher mit Vorzeichen 6-ASCI Zeichen
   IntToLogicVector: process(Clk,Reset)
@@ -197,11 +199,12 @@ BEGIN
   --Fomrat der Ausgabe: "x:+/-_____ y:+/-_____ z:+/-_____\n\r"
   --Setzt PrepareNextLineReady auf '1' falls der gesamte inhalt der FiFo ausgegebn wurde
   PrepareNextLine: process(Reset, EN, PrepareNextLineActiv, ByteWhiteOutputReady, IntToLogicVectorReady, 
-									PrepareNextLineSelectFiFo1, FiFo1, FiFo2, IntToLogicVectorBinOutput)
+									PrepareNextLineSelectFiFo1, FiFo1, FiFo2, IntToLogicVectorBinOutput, StepPrepareNextLine)
     variable iByteWhiteOutputBuffer : std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0');
     variable CurrentEntry : integer RANGE 0 to (BufferSize+1) := 0;
     variable Step : integer Range 0 to 3 := 0;
   BEGIN
+		Step := StepPrepareNextLine;
     IF (Reset = '1') THEN
       PrepareNextLineReady <= '1';
       PrepareNextLineActivReset2 <= '1';
@@ -210,11 +213,14 @@ BEGIN
       CurrentEntry := 0;
       Step := 0;
       iByteWhiteOutputBuffer := (others =>'0');
+		
     ELSE
       PrepareNextLineActivReset2 <= '0';
       OutputActivReset1 <= '0';
 		PrepareNextLineReady <= '0';												--Test bzgl. Latches
 		OutputActivSet <= '1';
+		--Step := StepPrepareNextLine;
+		
       IF ((EN = '1') AND (PrepareNextLineActiv = '1')) THEN
         OutputActivSet <= '0';
         IF(ByteWhiteOutputReady = '1') THEN
@@ -266,6 +272,7 @@ BEGIN
       END IF;
     END IF;
     ByteWhiteOutputBuffer <= iByteWhiteOutputBuffer;
+	 StepPrepareNextLine <= Step;
   END process PrepareNextLine;
 
   SwitchByteWhiteOutput: process(OutputActivSet, OutputActivReset1, OutputActivReset2)
