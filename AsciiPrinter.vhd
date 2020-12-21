@@ -65,6 +65,8 @@ architecture behave of AsciiPrinter is
   signal Set1 : std_logic := '0';
   signal Set2 : std_logic := '0';
   signal Set3 : std_logic := '0';
+  signal Set4 : std_logic := '0';
+  signal Set5 : std_logic := '0';
   
   signal CurrentByte : integer RANGE 0 to 8 := 0; --Maximal 224 Bit pro Zeile
   signal iCurrentByte : integer RANGE 0 to 8 := 0; --Maximal 224 Bit pro Zeile
@@ -209,9 +211,9 @@ BEGIN
 	
    xDDFS: entity work. xDDF(behave)
 	 port map(
-	 D => Reset or Set1,
+	 D => Set1,
 	 EN => '1',
-	 Reset => NOT(Set1),
+	 Reset => Set4,
 	 Clk => Clk,
 	 Q => PrepareNextLineReady
 	 );
@@ -222,16 +224,18 @@ BEGIN
   --Fomrat der Ausgabe: "x:+/-_____ y:+/-_____ z:+/-_____\n\r"
   --Setzt PrepareNextLineReady auf '1' falls der gesamte inhalt der FiFo ausgegebn wurde
   PrepareNextLine: process(Reset, EN, PrepareNextLineActiv, ByteWhiteOutputReady, IntToLogicVectorReady, Clk,
-									PrepareNextLineSelectFiFo1, FiFo1, FiFo2, IntToLogicVectorBinOutput, iIntToLogicVectorIntInput, StepPrepareNextLine, NextStepPrepareNextLine, CurrentEntry, iCurrentEntry, ByteWhiteOutputBuffer)
+									PrepareNextLineSelectFiFo1, FiFo1, FiFo2, IntToLogicVectorBinOutput, iIntToLogicVectorIntInput, StepPrepareNextLine, 
+									NextStepPrepareNextLine, CurrentEntry, iCurrentEntry, ByteWhiteOutputBuffer, Set4, OutputActivReset1, OutputActivReset2)
   BEGIN
 	 IntToLogicVectorIntInput <= iIntToLogicVectorIntInput;
-	 IF (CurrentEntry >= (BufferSize+1)) THEN Set1<='1'; ELSE Set1<='0'; END IF;
+	 IF (CurrentEntry >= (BufferSize+1)) or Reset = '1' THEN Set1<='1'; ELSE Set1<='0'; END IF;
+	 IF OutputActivReset1 = '1' OR OutputActivReset2= '1' THEN Set4 <='1'; ELSE Set4<='0'; END IF;
 	
 	  IF (Reset = '1') THEN
       --PrepareNextLineReady <= '1';
       PrepareNextLineActivReset2 <= '1';
       OutputActivSet <= '0';
-      OutputActivReset1 <= '1';
+      OutputActivReset1 <= '0';
       CurrentEntry <= 0;
       StepPrepareNextLine <= 0;
       iByteWhiteOutputBuffer <= (others =>'0');
@@ -326,7 +330,7 @@ xDDF2: entity work.xDDF(behave)
 		port map(
 		D => OutputActivSet,	--Hoffentlich reicht die Zeit ??
 		EN => '1',
-		Reset => OutputActivReset1 OR OutputActivReset2,	
+		Reset => Set4,	
 		Clk => Clk,
 		Q => OutputActiv
 		);  
@@ -337,12 +341,12 @@ xDDF2: entity work.xDDF(behave)
   --Setzt ByteWhiteOutputReady auf '1' wenn alle Bytes ausgegebn wurden
   ByteWhiteOutput: process(Reset, EN, OutputActiv, TX_BUSY, iTX_DATA, iiTX_DATA, ByteWhiteOutputBuffer, iCurrentByte, CurrentByte)
   BEGIN
-	IF (TX_BUSY = '0' AND ((iCurrentByte >= 28) OR (iTX_DATA = x"0D"))) THEN Set2 <='1'; ELSE Set2 <= '0'; END IF;
+	IF (TX_BUSY = '0' AND ((iCurrentByte >= 28) OR (iTX_DATA = x"0D"))) or Reset = '1' THEN Set2 <='1'; ELSE Set2 <= '0'; END IF;
 	IF (TX_BUSY = '0' AND ((iCurrentByte < 28) OR (iTX_DATA /= x"0D"))) THEN Set3 <='1'; ELSE Set3 <= '0'; END IF;
   
     IF (Reset = '1') THEN
       iCurrentByte <= 0;
-      OutputActivReset2 <= '1';
+      OutputActivReset2 <= '0';
       --ByteWhiteOutputReady <= '1';
       iTX_EN <= '0';
       iiTX_DATA <= x"00";
@@ -377,7 +381,7 @@ xDDF2: entity work.xDDF(behave)
 
 xDDF3: entity work.xDDF(behave)
 		port map(
-		D => Set2 or Reset,
+		D => Set2,
 		EN => '1',
 		Reset => Set3,	
 		Clk => Clk,
