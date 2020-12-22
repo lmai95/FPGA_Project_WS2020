@@ -15,9 +15,9 @@ Eingänge:
 * **Reset** :	std_logic = 0 {Reset Signal}
 * **Clk**   :	std_logic     {Clock Signal}
 
-* **acc_x** : signed integer range) {in m/s²}
-* **acc_y** : signed integer range) {in m/s²}
-* **acc_z** : signed integer range) {in m/s²}
+* **acc_x** : signed integer {in m/s²}
+* **acc_y** : signed integer {in m/s²}
+* **acc_z** : signed integer {in m/s²}
 
 ## -------------------------------UART -------------------------------------
 
