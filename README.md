@@ -7,7 +7,7 @@ Die Daten werden in einen Zwischenspeicher geschoben, welcher die Rohdaten  an e
 Nachfolgend die Schnittstelle aus Sicht der Signalverarbeitung:
 
 
-##--------------------------Sensor Modul----------------------------------
+## --------------------------Sensor Modul----------------------------------
 
 Eingänge:
 
@@ -17,7 +17,7 @@ Eingänge:
 
 
 
-##------------------------------UART -------------------------------------
+## ------------------------------UART -------------------------------------
 
 Eingänge:
 
@@ -35,7 +35,7 @@ Ausgänge:
 * **TX_DATA[N...0]**
 * **RX_BUSY**
 
-##------------------------------VGA --------------------------------------
+## ------------------------------VGA --------------------------------------
 
 Eingänge:
 
