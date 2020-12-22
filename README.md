@@ -19,8 +19,18 @@ Eingänge:
 * **acc_y** : signed integer range) {in m/s²}
 * **acc_z** : signed integer range) {in m/s²}
 
-* **EN** : std_logic = 1 {Enable Signal}
-* **Reset** : std_logic = 0 {Reset Signal}
+## --------------------------Sensor Modul----------------------------------
+
+Eingänge:
+
+* **EN** 	  : std_logic = 1 {Enable Signal}
+* **Reset** :	std_logic = 0 {Reset Signal}
+* **Clk**   :	std_logic     {Clock Signal}
+
+* **acc_x** : signed integer range) {in m/s²}
+* **acc_y** : signed integer range) {in m/s²}
+* **acc_z** : signed integer range) {in m/s²}
+
 
 
 ## -------------------------------UART -------------------------------------
