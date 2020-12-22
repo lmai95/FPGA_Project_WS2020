@@ -6,34 +6,36 @@ Die Daten werden in einen Zwischenspeicher geschoben, welcher die Rohdaten  an e
 
 Nachfolgend die Schnittstelle aus Sicht der Signalverarbeitung:
 
---------------------------Sensor Modul----------------------------------
-Eingänge:
 
-* x-achse (signed integer range) :in m/s²
-* y-achse (signed integer range) :in m/s²
-* z-achse (signed integer range) :in m/s²
-
-
-
-------------------------------UART -------------------------------------
+##--------------------------Sensor Modul----------------------------------
 
 Eingänge:
 
-* RX_EN (Bit)
-* RX_DATA[N...0]
-* RX_ERROR
-* TX_BUSY
+* **x-achse** (signed integer range) :in m/s²
+* **y-achse** (signed integer range) :in m/s²
+* **z-achse** (signed integer range) :in m/s²
+
+
+
+##------------------------------UART -------------------------------------
+
+Eingänge:
+
+* **RX_EN** (Bit)
+* **RX_DATA[N...0]**
+* **RX_ERROR**
+* **TX_BUSY**
 
 
 Ausgänge:
 
-* CLK
-* Reset
-* TX_EN (Bit)
-* TX_DATA[N...0]
-* RX_BUSY
+* **CLK**
+* **Reset**
+* **TX_EN** (Bit)
+* **TX_DATA[N...0]**
+* **RX_BUSY**
 
-------------------------------VGA --------------------------------------
+##------------------------------VGA --------------------------------------
 
 Eingänge:
 
