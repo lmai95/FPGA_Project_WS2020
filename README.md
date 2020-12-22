@@ -19,6 +19,8 @@ Eingänge:
 * **acc_y** : signed integer range) {in m/s²}
 * **acc_z** : signed integer range) {in m/s²}
 
+* **EN** : std_logic = 1 {Enable Signal}
+* **Reset** : std_logic = 0 {Reset Signal}
 
 
 ## -------------------------------UART -------------------------------------
@@ -27,7 +29,7 @@ Eingänge:
 
 * **TX_BUSY**    : std_logic {Busy Signal des UART}
 
-**NICHT IMPLEMENTIERT**
+**NICHT IMPLEMENTIERT:**
 * **RX_EN**
 * **RX_DATA[]**
 * **RX_ERROR**
@@ -40,7 +42,7 @@ Ausgänge:
 * **TX_EN**      : std_logic = 0 {Enable Signal des UART}
 * **TX_DATA[]**  : std_logic_vector[7..0] = x00 {Daten zum UART}
 
-**NICHT IMPLEMENTIERT**
+**NICHT IMPLEMENTIERT:**
 * **RX_BUSY**
 
 ## -------------------------------VGA --------------------------------------
