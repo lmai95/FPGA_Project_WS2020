@@ -45,9 +45,9 @@ Ausgänge:
 
 Eingänge:
 
+Ausgänge:
+
 * **Reset**      : std_logic = 0                 {Reset Signal}
 * **Clk**        : std_logic                     {Clock Signal}
 * **TX_EN**      : std_logic = 0                 {Enable Signal des UART}
 * **TX_DATA[]**  : std_logic_vector[7..0] = x00  {Daten zum UART}
-
-Ausgänge:
