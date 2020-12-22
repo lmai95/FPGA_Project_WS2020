@@ -1,8 +1,9 @@
 # signal_processing
 
+Die Signalverarbeitung erhält entsprechende Beschläunigungsdaten von der SPI-Schnittstelle und verarbeitet diese.
+Die Daten werden an einen Zwischenspeicher geschoben, wWlcher  Rohdaten  an die UART-Schnittstelle übergibt oder an eine Berechnung der Bildsignale zur anschließenden Ausgabe an einer VGA-Schnittstelle.
 
------Sensor Kontroll Modul---------------
-
+-----Sensor Modul-------------------------
 Eingänge:
 
 * x-achse (signed integer range) :in m/s²
@@ -17,7 +18,7 @@ Eingänge:
 
 Eingänge:
 
-* RX_EN (Bit) 
+* RX_EN (Bit)
 
 * RX_DATA[N...0]
 
