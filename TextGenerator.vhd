@@ -22,19 +22,35 @@ entity TextGenerator is
 end entity TextGenerator;
 
 architecture behave of TextGenerator is
-  signal IntToLogicVectorReady : std_logic := '0';
+  signal IntToLogicVectorReady : std_logic := '1';
   signal IntToLogicVectorIntInput : integer RANGE 0 to 65536;
   signal IntToLogicVectorBinOutput 	: std_logic_vector(47 downto 0) := (others =>'0');
-
+  signal IntToLogicVectorTrigger : std_logic := '0';
+  signal IntToLogicVectorReset : std_logic := '0';
+  signal IntToLogicVectorTaskCompleted : std_logic := '0';
+  signal IntToLogicVectorActiv : std_logic := '0';
+  
   signal PrepareNextLineReset : std_logic := '0';
   signal PrepareNextLineTaskCompleted : std_logic := '0';
   signal PrepareNextLineActiv : std_logic := '0';
   signal CurrentEntry : integer RANGE 0 to (BufferSize+1) := 0;
   signal iCurrentEntry : integer RANGE 0 to (BufferSize+1) := 0;
-  signal StepPrepareNextLine : integer Range 0 to 3 := 0;
-  signal NextStepPrepareNextLine : integer Range 0 to 3 := 0;
+  signal StepPrepareNextLine : integer Range 0 to 4 := 0;
+  signal NextStepPrepareNextLine : integer Range 0 to 4 := 0;
   signal iByteWhiteOutputBuffer : std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0'); --Speicher fuer die Ausgabe der naechsten Zeile; 28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
-BEGIN
+  signal ByteWhiteOutputReadyLast : std_logic := '1';
+  signal IntToLogicVectorReadyLast : std_logic := '1';
+  
+  BEGIN
+  IntToLogicVectorReset <= IntToLogicVectorTaskCompleted or Reset;
+  IntToLogicVectorSwitch: entity work.xDDF(behave) 
+  port map(
+    D => IntToLogicVectorTrigger,
+    EN => '1',
+    Reset => IntToLogicVectorReset,
+    Clk => Clk,
+    Q => IntToLogicVectorActiv
+  );
   --Wandelt die signed Integer Zahl IntToLogicVectorIntInput in ASCI Zeichen um. Annahme 16Bit integer daher mit Vorzeichen 6-ASCI Zeichen
   --Umwandlung beginnt sobald IntToLogicVectorReady ein neuer Wert zugewisen wird. Ausgabe erfolgt in IntToLogicVectorBinOutput
   --Sobald die Umwandlung abgeschlossen ist und eine neue begonnen werden kann wird IntToLogicVectorReady auf '1' gesetzt
@@ -48,11 +64,12 @@ BEGIN
       Step := 0;
       IntUnderConversion := 0;
       IntToLogicVectorReady <= '1';
+		IntToLogicVectorTaskCompleted <= '0';
     ELSIF (rising_edge(Clk)) THEN
+		IntToLogicVectorTaskCompleted <= '0';
       IF (Step = 0) THEN
         --Wartet auf einen neuen Wert
-        IntToLogicVectorReady <= '1';
-        IF (IntUnderConversion /= IntToLogicVectorIntInput) THEN
+        IF (IntToLogicVectorActiv = '1') THEN
           Step := 1;
         END IF;
       ELSIF (Step = 1) THEN
@@ -90,7 +107,7 @@ BEGIN
           --Umwandlung abgeschlossen
           IntToLogicVectorReady <= '1';
           Step := 0;
-          IntUnderConversion := IntToLogicVectorIntInput;
+          IntToLogicVectorTaskCompleted <= '1';
         END IF;
       END IF;
   end process IntToLogicVector;
@@ -115,14 +132,14 @@ BEGIN
     IF (Reset = '1') THEN
       iByteWhiteOutputBuffer <= (others =>'0');
       iCurrentEntry <= 0;
-      StepPrepareNextLine <= 0;
       ByteWhiteOutputTrigger <= '0';
       PrepareNextLineTaskCompleted <= '0';
+		IntToLogicVectorTrigger <= '0';
     ELSIF (rising_edge(Clk)) THEN
+		IntToLogicVectorTrigger <= '0';
       iCurrentEntry <= CurrentEntry;
       ByteWhiteOutputTrigger <= '0';
       PrepareNextLineTaskCompleted <= '0';
-      StepPrepareNextLine <= NextStepPrepareNextLine;
       IF ((EN = '1') AND (PrepareNextLineActiv = '1') AND (ByteWhiteOutputReady = '1')) THEN
         IF (iCurrentEntry >= (BufferSize+1)) THEN
           --Alle Eintraege im Puffer sind ausgegeben
@@ -133,16 +150,20 @@ BEGIN
           IF (StepPrepareNextLine = 0) THEN
             iByteWhiteOutputBuffer(223 downto 208) <= x"783A"; --Text "x:"
             IntToLogicVectorIntInput <= FiFo(iCurrentEntry).acc_x;
+				IntToLogicVectorTrigger <= '1';
           ELSIF (StepPrepareNextLine = 1) THEN
             iByteWhiteOutputBuffer(207 downto 136) <= IntToLogicVectorBinOutput & x"20793A"; --Text " y:"
             IntToLogicVectorIntInput <= FiFo(iCurrentEntry).acc_y;
+				IntToLogicVectorTrigger <= '1';
           ELSIF (StepPrepareNextLine = 2) THEN
             iByteWhiteOutputBuffer(135 downto 64) <= IntToLogicVectorBinOutput & x"207A3A"; --Text " z:"
             IntToLogicVectorIntInput <= FiFo(iCurrentEntry).acc_z;
+				IntToLogicVectorTrigger <= '1';
           ELSIF (StepPrepareNextLine = 3) THEN
             iByteWhiteOutputBuffer(63 downto 0) <= IntToLogicVectorBinOutput & x"0A0D"; --Text "\n\r"
-            iCurrentEntry<=iCurrentEntry+1;
             ByteWhiteOutputTrigger <= '1';
+			 ELSIF (StepPrepareNextLine = 4) THEN
+				iCurrentEntry<=iCurrentEntry+1;
           END IF;
         END IF;
       END IF;
@@ -150,22 +171,31 @@ BEGIN
   END process PrepareNextLine;
 
   --Prozess zum Weiterschalten der FSM in PrepareNextLine
-  NextStatePrepareNextLine: process(StepPrepareNextLine, EN, PrepareNextLineActiv, ByteWhiteOutputReady, IntToLogicVectorReady)
+  NextStatePrepareNextLine: process(StepPrepareNextLine, EN, Clk, Reset, PrepareNextLineActiv, ByteWhiteOutputReady, IntToLogicVectorReady, ByteWhiteOutputReadyLast)
   BEGIN
-    NextStepPrepareNextLine <= StepPrepareNextLine;
-    IF (EN = '1') AND (PrepareNextLineActiv = '1') AND (ByteWhiteOutputReady = '1') THEN
-      CASE StepPrepareNextLine IS
-        WHEN 0 =>
-          IF IntToLogicVectorReady = '1' THEN NextStepPrepareNextLine <= 1; END IF;
-        WHEN 1 =>
-          IF IntToLogicVectorReady = '1' THEN NextStepPrepareNextLine <= 2; END IF;
-        WHEN 2 =>
-          IF IntToLogicVectorReady = '1' THEN NextStepPrepareNextLine <= 3; END IF;
-        WHEN 3 =>
-          NextStepPrepareNextLine <= 0;
-      END CASE;
-    END IF;
+	IF Reset = '1' THEN 
+		NextStepPrepareNextLine <= 0;
+	ELSIF (rising_edge(Clk)) THEN
+		 NextStepPrepareNextLine <= StepPrepareNextLine;
+		 IF (EN = '1') AND (Reset = '0') AND (PrepareNextLineActiv = '1')  THEN
+			CASE StepPrepareNextLine IS
+			  WHEN 0 =>
+				 IF (IntToLogicVectorReady = '1') AND (IntToLogicVectorReadyLast = '0') THEN NextStepPrepareNextLine <= 1; END IF;
+			  WHEN 1 =>
+				 IF (IntToLogicVectorReady = '1') AND (IntToLogicVectorReadyLast = '0') THEN NextStepPrepareNextLine <= 2; END IF;
+			  WHEN 2 =>
+				 IF (IntToLogicVectorReady = '1') AND (IntToLogicVectorReadyLast = '0') THEN NextStepPrepareNextLine <= 3; END IF;
+			  WHEN 3 =>
+				IF (ByteWhiteOutputReady = '1') AND (ByteWhiteOutputReadyLast = '0') THEN NextStepPrepareNextLine <= 4; END IF;
+			  WHEN 4 =>
+				NextStepPrepareNextLine <= 0;
+			END CASE;
+		 END IF;
+		 ByteWhiteOutputReadyLast <= ByteWhiteOutputReady;
+		 IntToLogicVectorReadyLast <= IntToLogicVectorReady;
+		END IF;
   END process NextStatePrepareNextLine;
+  StepPrepareNextLine <= NextStepPrepareNextLine;
   CurrentEntry <= iCurrentEntry;
   ByteWhiteOutputBuffer <= iByteWhiteOutputBuffer;
 end architecture behave;

@@ -33,7 +33,7 @@ BEGIN
 
   DUT: entity work.AsciiPrinter(behave)
     generic map(
-      BufferSize => 1
+      BufferSize => 2
     )
     port map(
     EN => EN,

@@ -36,7 +36,7 @@ architecture behave of DataCollector is
   signal FiFo2 : DataSampleBuffer(BufferSize downto 0) := (others => (others => 0));--Buffer2 zum zwischenspeichern der eingehenden Daten
 BEGIN
   --Sammelt die Eingangswerte
-  CollectData: process(Reset, EN, data_valid, data_validLastState, TextGeneratorReady)
+  CollectData: process(Reset, EN, Clk, data_valid, data_validLastState, TextGeneratorReady)
     variable CurrentFiFo1 : boolean := true; --true: Sammelt gerade Daten in FiFo1, false: Sammelt gerade Daten in FiFo2
   BEGIN
     IF (Reset = '1') THEN

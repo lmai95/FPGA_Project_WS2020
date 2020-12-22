@@ -31,7 +31,7 @@ architecture behave of ByteWhiteOutput is
   signal iTX_DATA_Last : std_logic_vector(7 downto 0) := x"00";
   signal CurrentByte : integer RANGE 0 to 29 := 0; --Maximal 224 Bit pro Zeile
   signal iCurrentByte : integer RANGE 0 to 29 := 0; --Maximal 224 Bit pro Zeile
-
+  signal iByteWhiteOutputReady : std_logic := '1';
 BEGIN
   ByteWhiteOutputReset <= ByteWhiteOutputTaskCompleted or Reset;
   SwitchByteWhiteOutput: entity work.xDDF(behave)
@@ -40,8 +40,7 @@ BEGIN
     EN => '1',
     Reset => ByteWhiteOutputReset,
     Clk => Clk,
-    Q => ByteWhiteOutputActiv,
-    Qn => ByteWhiteOutputReady
+    Q => ByteWhiteOutputActiv
   );
   UartNotEnable <= NOT(TX_BUSY) or Reset;
   EnableUART: entity work.xDDF(behave)
@@ -52,6 +51,18 @@ BEGIN
     Clk => Clk,
     Q => TX_EN
   );
+  ByteWhiteOutputState: process(Reset, Clk)
+  BEGIN
+	IF (rising_edge(Clk)) THEN
+		IF((ByteWhiteOutputTaskCompleted  = '1') OR (Reset = '1')) THEN
+			iByteWhiteOutputReady <= '1';
+		END IF;
+		IF (ByteWhiteOutputTrigger = '1') THEN
+			iByteWhiteOutputReady <= '0';
+		END IF;
+	END IF;
+  end process ByteWhiteOutputState;
+
   --ToDo mit clock synchronisieren
   --Gibt die Bytes aus ByteWhiteOutputBuffer einzel an die UART aus, wenn OutputActiv '1' und EN '1' ist
   --Sobald das Zeichen '\r' in ByteWhiteOutputBuffer erkannt wird stoppt die ausgabe
@@ -72,6 +83,7 @@ BEGIN
         IF ((iCurrentByte >= 28) OR (iTX_DATA = x"0D")) THEN
           --Alle Bytes uebertragen
           iCurrentByte <= 0;
+			 iTX_DATA <= x"00";
           ByteWhiteOutputTaskCompleted <= '1';
         ELSE
           --Uebertraegt ein Byte
@@ -85,5 +97,6 @@ BEGIN
   CurrentByte <= iCurrentByte;
   iTX_DATA_Last <= iTX_DATA;
 
+  ByteWhiteOutputReady <= iByteWhiteOutputReady;
   TX_DATA <= iTX_DATA;
 end architecture behave;
