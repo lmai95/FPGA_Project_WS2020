@@ -1,7 +1,8 @@
 # signal_processing
 
 Die Signalverarbeitung erhält gemessene Beschleunigungsdaten von der SPI-Schnittstelle und verarbeitet diese.
-Die Daten werden an einen Zwischenspeicher geschoben, wWlcher  Rohdaten  an die UART-Schnittstelle übergibt oder an eine Berechnung der Bildsignale zur anschließenden Ausgabe an einer VGA-Schnittstelle.
+
+Die Daten werden an einen Zwischenspeicher geschoben, welcher die Rohdaten  an eine UART-Schnittstelle übergibt oderals zweiten Datenpfad an eine Bildsignaleberechnung zur anschließenden Ausgabe an einer VGA-Schnittstelle.
 
 -----Sensor Modul-------------------------
 Eingänge:
