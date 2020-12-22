@@ -2,7 +2,7 @@
 
 Die Signalverarbeitung erhält gemessene Beschleunigungsdaten von der SPI-Schnittstelle und verarbeitet diese.
 
-Die Daten werden in einen Zwischenspeicher geschoben, welcher die Rohdaten  an eine UART-Schnittstelle übergibt oder als zweiten Datenpfad an eine Bildsignalberechnung zur anschließenden Ausgabe an einer VGA-Schnittstelle weiterreicht.
+Die Daten werden in einen Zwischenspeicher geschoben, welcher die Daten als ASCII-Werte an eine UART-Schnittstelle übergibt, oder als zweiten Datenpfad an eine Bildsignalberechnung zur anschließenden Ausgabe an einer VGA-Schnittstelle.
 
 Nachfolgend die Schnittstellen aus Sicht der Signalverarbeitung:
 
