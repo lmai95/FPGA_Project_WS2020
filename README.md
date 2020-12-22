@@ -19,20 +19,6 @@ Eingänge:
 * **acc_y** : signed integer range) {in m/s²}
 * **acc_z** : signed integer range) {in m/s²}
 
-## --------------------------Sensor Modul----------------------------------
-
-Eingänge:
-
-* **EN** 	  : std_logic = 1 {Enable Signal}
-* **Reset** :	std_logic = 0 {Reset Signal}
-* **Clk**   :	std_logic     {Clock Signal}
-
-* **acc_x** : signed integer range) {in m/s²}
-* **acc_y** : signed integer range) {in m/s²}
-* **acc_z** : signed integer range) {in m/s²}
-
-
-
 ## -------------------------------UART -------------------------------------
 
 Eingänge:
@@ -47,10 +33,10 @@ Eingänge:
 
 Ausgänge:
 
-* **Reset**      : std_logic = 0 {Reset Signal}
-* **Clk**        : std_logic     {Clock Signal}
-* **TX_EN**      : std_logic = 0 {Enable Signal des UART}
-* **TX_DATA[]**  : std_logic_vector[7..0] = x00 {Daten zum UART}
+* **Reset**      : std_logic = 0                 {Reset Signal}
+* **Clk**        : std_logic                     {Clock Signal}
+* **TX_EN**      : std_logic = 0                 {Enable Signal des UART}
+* **TX_DATA[]**  : std_logic_vector[7..0] = x00  {Daten zum UART}
 
 **NICHT IMPLEMENTIERT:**
 * **RX_BUSY**
@@ -58,5 +44,10 @@ Ausgänge:
 ## -------------------------------VGA --------------------------------------
 
 Eingänge:
+
+* **Reset**      : std_logic = 0                 {Reset Signal}
+* **Clk**        : std_logic                     {Clock Signal}
+* **TX_EN**      : std_logic = 0                 {Enable Signal des UART}
+* **TX_DATA[]**  : std_logic_vector[7..0] = x00  {Daten zum UART}
 
 Ausgänge:
