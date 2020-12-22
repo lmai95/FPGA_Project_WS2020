@@ -12,6 +12,7 @@ Nachfolgend die Schnittstelle aus Sicht der Signalverarbeitung:
 Eingänge:
 
 * **EN** 	  : std_logic = 1 {Enable Signal}
+* **Test**
 * **Reset** :	std_logic = 0 {Reset Signal}
 * **Clk**   :	std_logic     {Clock Signal}
 
@@ -25,18 +26,21 @@ Eingänge:
 
 Eingänge:
 
+* **TX_BUSY**    : std_logic {Busy Signal des UART}
+
+**NICHT IMPLEMENTIERT**
+
 * **RX_EN** : Bit
-* **RX_DATA[N...0]**
+* **RX_DATA[]**
 * **RX_ERROR**
-* **TX_BUSY**         : std_logic {Busy Signal des UART}
 
 
 Ausgänge:
 
 * **CLK**
 * **Reset**
-* **TX_EN**           : std_logic = 0 {Enable Signal des UART}
-* **TX_DATA[N...0]**  : std_logic_vector[7..0] = x00 {Daten zum UART}
+* **TX_EN**      : std_logic = 0 {Enable Signal des UART}
+* **TX_DATA[]**  : std_logic_vector[7..0] = x00 {Daten zum UART}
 * **RX_BUSY**
 
 ## -------------------------------VGA --------------------------------------
