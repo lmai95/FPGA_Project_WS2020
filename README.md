@@ -19,7 +19,7 @@ Eingänge:
 * **EN** 	        : std_logic = 1 {Enable Signal}
 * **Reset**       :	std_logic = 0 {Reset Signal}
 * **Clk**         :	std_logic     {Clock Signal}
-* **data_valid**  : std_logic     {valide Daten liegen am Augang dr SPI-Schnittstelle an}
+* **data_valid**  : std_logic     {valide Daten liegen am Augang der SPI-Schnittstelle an}
 
 * **acc_x**       : signed integer {in m/s²}
 * **acc_y**     	: signed integer {in m/s²}
