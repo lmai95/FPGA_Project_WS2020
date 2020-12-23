@@ -159,9 +159,9 @@ architecture behave of TextGenerator is
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 1) THEN
-			--Triggert die Ausgabe fuer den Text "-x
+			--Triggert die Ausgabe fuer den Text "x:"
 			TextGeneratorReady <= '0';
-			iByteWhiteOutputBuffer(47 downto 16) <= x"2d783A03"; --Text "-x:"
+			iByteWhiteOutputBuffer(47 downto 24) <= x"783A03"; --Text "x:"
 			iCurrentEntry <= CurrentEntry;
 			IntToLogicVectorIntInput <= 0;
 			IntToLogicVectorTrigger <= '0';
@@ -169,7 +169,7 @@ architecture behave of TextGenerator is
 		ELSIF (PrepareNextLineStep = 2) THEN
 			--Wartet auf die Ausgabe
 			TextGeneratorReady <= '0';
-			iByteWhiteOutputBuffer(47 downto 16) <= x"2d783A03"; --Text "-x:"
+			iByteWhiteOutputBuffer(47 downto 24) <= x"783A03"; --Text "x:"
 			iCurrentEntry <= CurrentEntry;
 			IntToLogicVectorIntInput <= 0;
 			IntToLogicVectorTrigger <= '0';
