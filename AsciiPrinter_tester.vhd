@@ -54,27 +54,25 @@ BEGIN
     IF iCLK = '0' THEN
       Clockcount <= Clockcount + 1;
     end if;
-    wait for 50us;
+    wait for 500us;
   end process ClockGenerator;
 
   --Simuliert die UART mit 115200 Baud; Dauer ~70µS um 8 Bit zu uebertragen
-  UartDelay: process(iCLK)
+  UartDelay: process(iCLK, TX_EN)
     variable LastTX_DATA : std_logic_vector(7 downto 0) := x"00";
-    variable counter : integer Range 0 to 70 := 70;
+    variable counter : integer Range 0 to 70 := 0;
   BEGIN
     IF (rising_edge(iCLK)) THEN
-      IF (TX_EN = '1') THEN
-        IF (counter /= 70) THEN
+			IF (LastTX_DATA /= TX_DATA) AND (TX_EN = '1') THEN
+          counter := 0;
+          LastTX_DATA := TX_DATA;
+        END IF;
+        IF (counter < 2) THEN
           counter := counter + 1;
           iTX_BUSY <= '1';
         ELSE
           iTX_BUSY <= '0';
         END IF;
-        IF (LastTX_DATA /= TX_DATA) THEN
-          counter := 0;
-          LastTX_DATA := TX_DATA;
-        END IF;
-      END IF;
     END IF;
   END process UartDelay;
 

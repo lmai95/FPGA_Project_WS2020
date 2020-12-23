@@ -6,7 +6,7 @@ use work.BufferData.all;
 entity AsciiPrinter is
 generic(
   BufferSize : integer := 9;                  --Legt die groesse der beiden Buffer fest
-  MaxBitPerByteWhiteOutput : integer := 223   --Legt die maximale Zeilenlaenge in Bit fest; 28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
+  MaxBitPerByteWhiteOutput : integer := 47   --Legt die maximale Zeilenlaenge in Bit fest; 28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
 );
 port(
   EN 	  	: in std_logic := '1';    --Enable Signal des AsciiPrinters

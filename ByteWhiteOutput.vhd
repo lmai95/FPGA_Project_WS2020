@@ -5,98 +5,114 @@ use work.BufferData.all;
 
 entity ByteWhiteOutput is
   generic(
-    MaxBitPerByteWhiteOutput : integer := 223   --Legt die maximale Zeilenlaenge in Bit fest; 28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
+    MaxBitPerByteWhiteOutput : integer := 47 --Legt die maximale Anazahl an Bit's in einer Zeile fest (inclusive Wert 0..); ->28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
   );
   port(
     EN 	  	: in std_logic := '1'; --Enable Signal des ByteWhiteOutput
     Reset 	: in std_logic := '0'; --Reset Signal des ByteWhiteOutput
-    Clk   	: in std_logic;
-    ByteWhiteOutputReady : out std_logic;
-    ByteWhiteOutputTrigger : in std_logic;
-    ByteWhiteOutputBuffer : in std_logic_vector(MaxBitPerByteWhiteOutput downto 0);
-    TX_BUSY : in std_logic := '0';
+    Clk   	: in std_logic;        --Clock Signal des ByteWhiteOutput
+    ByteWhiteOutputReady : out std_logic := '1';  --Bei '1' bereit die naechste Zeile auszugeben
+    ByteWhiteOutputTrigger : in std_logic;        --Startet die Ausgabe duch den Wert '1'
+    ByteWhiteOutputBuffer : in std_logic_vector(MaxBitPerByteWhiteOutput downto 0); --Die Daten/Die Zeile die Ausgegebn werden soll
+    TX_BUSY : in std_logic := '0';                      --TX_BUSY der UART
     TX_EN 	: out std_logic := '0';                     --TX_EN der UART
-    TX_DATA : out std_logic_vector(7 downto 0):= x"00"  --Eingangsbyte der UART; LSB hat Index 0
+    TX_DATA : out std_logic_vector(7 downto 0):= x"00"  --Eingangsbyte der UART; LSB Index 0
   );
  end entity ByteWhiteOutput;
 
 
 architecture behave of ByteWhiteOutput is
-  signal ByteWhiteOutputReset : std_logic := '0';
-  signal ByteWhiteOutputTaskCompleted : std_logic := '0';
-  signal ByteWhiteOutputActiv : std_logic := '0';
-  signal UartNotEnable : std_logic := '0';
-  signal iTX_EN : std_logic := '0';                                                                     --internes Signal fuer den Ausgang TX_EN
+  signal Step : integer RANGE 0 to 4 := 0;      --aktueller Zustand der FSM
+  signal NextStep : integer RANGE 0 to 4 := 0;  --naechster Zustand der FSM
+  signal CurrentByte : integer RANGE 0 to ((MaxBitPerByteWhiteOutput+1)/8) := 0;  --Zaehlvariable fuer das aktuelle Byte (der Zeile) das ausgegeben wird
+  signal iCurrentByte : integer RANGE 0 to ((MaxBitPerByteWhiteOutput+1)/8) := 0;
+  signal iTX_EN : std_logic := '0';
   signal iTX_DATA : std_logic_vector(7 downto 0) := x"00";
-  signal iTX_DATA_Last : std_logic_vector(7 downto 0) := x"00";
-  signal CurrentByte : integer RANGE 0 to 29 := 0; --Maximal 224 Bit pro Zeile
-  signal iCurrentByte : integer RANGE 0 to 29 := 0; --Maximal 224 Bit pro Zeile
   signal iByteWhiteOutputReady : std_logic := '1';
-BEGIN
-  ByteWhiteOutputReset <= ByteWhiteOutputTaskCompleted or Reset;
-  SwitchByteWhiteOutput: entity work.xDDF(behave)
-  port map(
-    D => ByteWhiteOutputTrigger,
-    EN => '1',
-    Reset => ByteWhiteOutputReset,
-    Clk => Clk,
-    Q => ByteWhiteOutputActiv
-  );
-  UartNotEnable <= NOT(TX_BUSY) or Reset;
-  EnableUART: entity work.xDDF(behave)
-  port map(
-    D => iTX_EN,
-    EN => '1',
-    Reset => UartNotEnable,
-    Clk => Clk,
-    Q => TX_EN
-  );
-  ByteWhiteOutputState: process(Reset, Clk)
-  BEGIN
-	IF (rising_edge(Clk)) THEN
-		IF((ByteWhiteOutputTaskCompleted  = '1') OR (Reset = '1')) THEN
-			iByteWhiteOutputReady <= '1';
-		END IF;
-		IF (ByteWhiteOutputTrigger = '1') THEN
-			iByteWhiteOutputReady <= '0';
-		END IF;
-	END IF;
-  end process ByteWhiteOutputState;
 
-  --ToDo mit clock synchronisieren
-  --Gibt die Bytes aus ByteWhiteOutputBuffer einzel an die UART aus, wenn OutputActiv '1' und EN '1' ist
-  --Sobald das Zeichen '\r' in ByteWhiteOutputBuffer erkannt wird stoppt die ausgabe
+BEGIN
+
+  --Byteweise ausgabe einer Textzeile die durch ByteWhiteOutputBuffer uebergeben wird
+  --Sobald MaxBitPerByteWhiteOutput oder das Zeichen ETX in ByteWhiteOutputBuffer erkannt wird stoppt die ausgabe
   --Setzt ByteWhiteOutputReady auf '1' wenn alle Bytes ausgegebn wurden
-  ByteWhiteOutput: process(Reset, EN, Clk, ByteWhiteOutputActiv, TX_BUSY, iCurrentByte, iTX_DATA)
+  ByteWhiteOutput: process(Reset, Clk, Step)
   BEGIN
     IF (Reset = '1') THEN
-      iCurrentByte <= 0;
-      ByteWhiteOutputTaskCompleted <= '1';
+		iCurrentByte <= 0;
       iTX_EN <= '0';
       iTX_DATA <= x"00";
     ELSIF (rising_edge(Clk)) THEN
-      iTX_EN <= '0';
-      iTX_DATA <= iTX_DATA_Last;
-      iCurrentByte <= CurrentByte;
-		ByteWhiteOutputTaskCompleted <= '0';
-      IF ((EN = '1') AND (ByteWhiteOutputActiv = '1') AND (TX_BUSY = '0')) THEN
-        IF ((iCurrentByte >= 28) OR (iTX_DATA = x"0D")) THEN
-          --Alle Bytes uebertragen
-          iCurrentByte <= 0;
-			 iTX_DATA <= x"00";
-          ByteWhiteOutputTaskCompleted <= '1';
-        ELSE
-          --Uebertraegt ein Byte
-          iTX_DATA <= ByteWhiteOutputBuffer( (MaxBitPerByteWhiteOutput-(8*iCurrentByte)) DOWNTO (MaxBitPerByteWhiteOutput-(8*((iCurrentByte+1))-1)) );
-          iTX_EN <= '1';
-          iCurrentByte <= iCurrentByte + 1;
-        END IF;
-      END IF;
-    END IF;
-  END process ByteWhiteOutput;
-  CurrentByte <= iCurrentByte;
-  iTX_DATA_Last <= iTX_DATA;
+		CASE Step IS
+			WHEN 0 =>
+        --Grundzustand wartet auf ByteWhiteOutputTrigger
+				iCurrentByte <= 0;
+				iTX_EN <= '0';
+				iTX_DATA <= x"00";
+				iByteWhiteOutputReady <= '1';
+			WHEN 1 =>
+        --Uebergibt der UART ein Byte, startet sie durch TX_EN
+				iCurrentByte <= CurrentByte;
+				iTX_EN <= '1';
+				iTX_DATA <= ByteWhiteOutputBuffer( (MaxBitPerByteWhiteOutput-(8*iCurrentByte)) DOWNTO (MaxBitPerByteWhiteOutput-(8*((iCurrentByte+1))-1)) );
+				iByteWhiteOutputReady <= '0';
+			WHEN 2 =>
+        --Wartet bis die UART wieder bereit ist
+				iCurrentByte <= CurrentByte;
+				iTX_EN <= '0';	--ACHTUNG: ERWARTET DIE UART EINEN EINMALIGEN IMPULS?
+				iTX_DATA <= ByteWhiteOutputBuffer( (MaxBitPerByteWhiteOutput-(8*iCurrentByte)) DOWNTO (MaxBitPerByteWhiteOutput-(8*((iCurrentByte+1))-1)) );
+				iByteWhiteOutputReady <= '0';
+			WHEN 3 =>
+        --Bereitet das naechste Byte zur ausgabe vor
+				iCurrentByte <= iCurrentByte + 1;
+				iTX_EN <= '0';
+				iTX_DATA <= x"00";
+				iByteWhiteOutputReady <= '0';
+			WHEN 4 =>
+        --Wartet darauf das ByteWhiteOutputTrigger '0' ist
+				iCurrentByte <= 0;
+				iTX_EN <= '0';
+				iTX_DATA <= x"00";
+				iByteWhiteOutputReady <= '0';
+		END CASE;
+	 END IF;
+	END process ByteWhiteOutput;
 
-  ByteWhiteOutputReady <= iByteWhiteOutputReady;
+	ByteWhiteOutputNextState: process(Reset, Clk, EN, Step, ByteWhiteOutputTrigger, TX_BUSY, iCurrentByte, iTX_DATA, ByteWhiteOutputBuffer)
+	BEGIN
+		IF Reset = '1' THEN
+		  NextStep <= 0;
+		ELSIF (rising_edge(Clk)) THEN
+		  NextStep <= Step;
+		  IF (EN = '1') THEN
+				CASE Step IS
+					WHEN 0 =>
+						IF (ByteWhiteOutputTrigger = '1') THEN NextStep <= 1; END IF;
+					WHEN 1 =>
+						NextStep <= 2;
+					WHEN 2 =>
+						IF (TX_BUSY = '0') AND (iCurrentByte < 5) THEN
+							IF (iTX_DATA = x"03") THEN	  --ETX erkannt
+								NextStep <= 4; 
+							ELSE
+								NextStep <= 3; --Es stehen weitere Daten zur Ausgabe Bereit
+							END IF;
+						END IF;
+						IF (TX_BUSY = '0') AND (iCurrentByte >= 5) THEN	  	--Alle Daten ausgeben
+							NextStep <= 4;
+						END IF;
+					WHEN 3 =>
+						NextStep <= 1;
+					WHEN 4 =>
+						IF (ByteWhiteOutputTrigger = '0') THEN NextStep <= 0; END IF;
+					WHEN OTHERS =>
+						NextStep <= 0;
+				END CASE;
+			END IF;
+		END IF;
+  END process ByteWhiteOutputNextState;
+  Step <= NextStep;
+  CurrentByte <= iCurrentByte;
+  TX_EN <= iTX_EN;
   TX_DATA <= iTX_DATA;
+  ByteWhiteOutputReady <= iByteWhiteOutputReady;
 end architecture behave;
