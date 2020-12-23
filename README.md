@@ -6,6 +6,7 @@ Die Daten werden in einen Zwischenspeicher geschoben, welcher die Daten als ASCI
 
 Die Daten werden als folgende ASCII Zeichenfolge ausgegeben:
 "- x:+00000LF y:+00000LF z:+00000LF CR ETX"
+
 Anmerkung: "+" kann auch "-" sein und pro Achse werden jeweils 5 Datenbits übertragen
 
 Nachfolgend die Schnittstellen aus Sicht der Signalverarbeitung:
