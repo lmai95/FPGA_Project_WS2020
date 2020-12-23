@@ -11,13 +11,14 @@ Nachfolgend die Schnittstellen aus Sicht der Signalverarbeitung:
 
 Eingänge:
 
-* **EN** 	  : std_logic = 1 {Enable Signal}
-* **Reset** :	std_logic = 0 {Reset Signal}
-* **Clk**   :	std_logic     {Clock Signal}
+* **EN** 	        : std_logic = 1 {Enable Signal}
+* **Reset**       :	std_logic = 0 {Reset Signal}
+* **Clk**         :	std_logic     {Clock Signal}
+* **data_valid**  : std_logic     {valide Daten von Sensor}
 
-* **acc_x** : signed integer {in m/s²}
-* **acc_y** : signed integer {in m/s²}
-* **acc_z** : signed integer {in m/s²}
+* **acc_x**       : signed integer {in m/s²}
+* **acc_y**     	: signed integer {in m/s²}
+* **acc_z**       : signed integer {in m/s²}
 
 ## -------------------------------UART -------------------------------------
 
