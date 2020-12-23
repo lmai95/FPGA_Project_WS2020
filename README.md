@@ -5,7 +5,7 @@ Die Signalverarbeitung erhält gemessene Beschleunigungsdaten von der SPI-Schnit
 Die Daten werden in einen Zwischenspeicher geschoben, welcher die Daten als ASCII-Werte an eine UART-Schnittstelle übergibt, oder als zweiten Datenpfad an eine Bildsignalberechnung zur anschließenden Ausgabe an einer VGA-Schnittstelle.
 
 Die Daten werden als folgende ASCII Zeichenfolge ausgegeben:
-"- x:+00000LF y:+00000LF z:+00000LF CR ETX"
+**"- x:+00000LF y:+00000LF z:+00000LF CR ETX"**
 
 *Anmerkung: "+" kann auch "-" sein und pro Achse werden jeweils 5 Datenbits übertragen*
 
