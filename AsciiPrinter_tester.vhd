@@ -9,9 +9,9 @@ port(
   Clk : out std_logic;
 
   data_valid : out std_logic;--data valid des Sensor Kontroll-Modul
-  acc_x : out integer; 		  --x-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  acc_y : out integer; 		  --y-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  acc_z : out integer; 		  --z-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_x : out integer RANGE 0 to 65536; 		  --x-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_y : out integer RANGE 0 to 65536; 		  --y-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_z : out integer RANGE 0 to 65536; 		  --z-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
   TX_BUSY : out std_logic;                           --TX_Busy der UART
   TX_EN : in std_logic := '0';                       --TX_EN der UART
   TX_DATA : in std_logic_vector(7 downto 0) := x"00"  --Eingangsbyte der UART; LSB hat Index 0

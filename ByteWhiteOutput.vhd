@@ -5,15 +5,17 @@ use work.BufferData.all;
 
 entity ByteWhiteOutput is
   generic(
-    MaxBitPerByteWhiteOutput : integer := 47 --Legt die maximale Anazahl an Bit's in einer Zeile fest (inclusive Wert 0..); ->28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
+    MaxBitPerByteWhiteOutput : integer := 223 --Legt die Anazahl der Bit's fest (inclusive Wert 0..) die ByteWhiteOutput aufeinmal verarbeitet; ->28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
   );
   port(
     EN 	  	: in std_logic := '1'; --Enable Signal des ByteWhiteOutput
     Reset 	: in std_logic := '0'; --Reset Signal des ByteWhiteOutput
     Clk   	: in std_logic;        --Clock Signal des ByteWhiteOutput
+	 
     ByteWhiteOutputReady : out std_logic := '1';  --Bei '1' bereit die naechste Zeile auszugeben
     ByteWhiteOutputTrigger : in std_logic;        --Startet die Ausgabe duch den Wert '1'
     ByteWhiteOutputBuffer : in std_logic_vector(MaxBitPerByteWhiteOutput downto 0); --Die Daten/Die Zeile die Ausgegebn werden soll
+	 
     TX_BUSY : in std_logic := '0';                      --TX_BUSY der UART
     TX_EN 	: out std_logic := '0';                     --TX_EN der UART
     TX_DATA : out std_logic_vector(7 downto 0):= x"00"  --Eingangsbyte der UART; LSB Index 0
@@ -33,9 +35,9 @@ architecture behave of ByteWhiteOutput is
 BEGIN
 
   --Byteweise ausgabe einer Textzeile die durch ByteWhiteOutputBuffer uebergeben wird
-  --Sobald MaxBitPerByteWhiteOutput oder das Zeichen ETX in ByteWhiteOutputBuffer erkannt wird stoppt die ausgabe
+  --Sobald MaxBitPerByteWhiteOutput oder das Zeichen "\r" in ByteWhiteOutputBuffer erkannt wird stoppt die ausgabe
   --Setzt ByteWhiteOutputReady auf '1' wenn alle Bytes ausgegebn wurden
-  ByteWhiteOutput: process(Reset, Clk, Step)
+  ByteWhiteOutput: process(Reset, Clk)
   BEGIN
     IF (Reset = '1') THEN
 		iCurrentByte <= 0;
@@ -90,14 +92,14 @@ BEGIN
 					WHEN 1 =>
 						NextStep <= 2;
 					WHEN 2 =>
-						IF (TX_BUSY = '0') AND (iCurrentByte < 5) THEN
-							IF (iTX_DATA = x"03") THEN	  --ETX erkannt
+						IF (TX_BUSY = '0') AND (iCurrentByte < ((MaxBitPerByteWhiteOutput+1)/8)) THEN
+							IF (iTX_DATA = x"0D") THEN	  --"\r" erkannt
 								NextStep <= 4; 
 							ELSE
 								NextStep <= 3; --Es stehen weitere Daten zur Ausgabe Bereit
 							END IF;
 						END IF;
-						IF (TX_BUSY = '0') AND (iCurrentByte >= 5) THEN	  	--Alle Daten ausgeben
+						IF (TX_BUSY = '0') AND (iCurrentByte >= ((MaxBitPerByteWhiteOutput+1)/8)) THEN	  	--Alle Daten ausgeben
 							NextStep <= 4;
 						END IF;
 					WHEN 3 =>
