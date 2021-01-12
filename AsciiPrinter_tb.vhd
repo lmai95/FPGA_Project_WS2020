@@ -10,9 +10,9 @@ architecture behave of AsciiPrinter_tb is
   signal Reset : std_logic;
   signal Clk : std_logic;
   signal data_valid : std_logic;
-  signal acc_x : integer RANGE 0 to 65536;
-  signal acc_y : integer RANGE 0 to 65536;
-  signal acc_z : integer RANGE 0 to 65536;
+  signal acc_x : integer RANGE 0 to 65535;
+  signal acc_y : integer RANGE 0 to 65535;
+  signal acc_z : integer RANGE 0 to 65535;
   signal TX_BUSY : std_logic;
   signal TX_EN : std_logic;
   signal TX_DATA : std_logic_vector(7 downto 0);
