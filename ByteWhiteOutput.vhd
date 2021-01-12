@@ -90,7 +90,7 @@ BEGIN
 					WHEN 0 =>
 						IF (ByteWhiteOutputTrigger = '1') THEN NextStep <= 1; END IF;
 					WHEN 1 =>
-						NextStep <= 2;
+						IF (TX_BUSY = '1') THEN NextStep <= 2; END IF;
 					WHEN 2 =>
 						IF (TX_BUSY = '0') AND (iCurrentByte < ((MaxBitPerByteWhiteOutput+1)/8)) THEN
 							IF (iTX_DATA = x"0D") THEN	  --"\r" erkannt
