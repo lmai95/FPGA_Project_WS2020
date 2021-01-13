@@ -5,7 +5,7 @@ Die Signalverarbeitung erhält gemessene Beschleunigungsdaten von der SPI-Schnit
 Die Daten werden in einen Zwischenspeicher geschoben, welcher die Daten als ASCII-Werte an eine UART-Schnittstelle übergibt, oder als zweiten Datenpfad an eine Bildsignalberechnung zur anschließenden Ausgabe an einer VGA-Schnittstelle.
 
 Die Daten werden als folgende ASCII Zeichenfolge ausgegeben:
-**"x:ETX+00000LF y:ETX+00000LF z:ETX+00000LF CR ETX"**
+**"x:+00000 y:+00000 z:ETX+00000 LF CR"**
 
 *Anmerkung: "+" kann auch "-" sein und pro Achse werden jeweils 5 Datenbits übertragen*
 
@@ -19,7 +19,7 @@ Eingänge:
 * **EN** 	        : std_logic = 1 {Enable Signal}
 * **Reset**       :	std_logic = 0 {Reset Signal}
 * **Clk**         :	std_logic     {Clock Signal}
-* **data_valid**  : std_logic     {valide Daten liegen am Augang der SPI-Schnittstelle an}
+* **data_valid**  : std_logic     {valide Daten liegen am Ausgang der SPI-Schnittstelle an}
 
 * **acc_x**       : signed integer {in m/s²}
 * **acc_y**     	: signed integer {in m/s²}
@@ -39,8 +39,6 @@ Eingänge:
 
 Ausgänge:
 
-* **Clear**      : std_logic = 0                 {synchron. Clear Signal}
-* **Clk**        : std_logic                     {Clock Signal}
 * **TX_EN**      : std_logic = 0                 {Enable Signal des UART}
 * **TX_DATA[]**  : std_logic_vector[7..0] = x00  {Daten zum UART}
 
