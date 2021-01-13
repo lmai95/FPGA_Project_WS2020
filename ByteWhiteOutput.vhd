@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.BufferData.all;
 
 entity ByteWhiteOutput is
   generic(
@@ -60,7 +59,7 @@ BEGIN
 			WHEN 2 =>
         --Wartet bis die UART wieder bereit ist
 				iCurrentByte <= CurrentByte;
-				iTX_EN <= '0';	--ACHTUNG: ERWARTET DIE UART EINEN EINMALIGEN IMPULS?
+				iTX_EN <= '0';
 				iTX_DATA <= ByteWhiteOutputBuffer( (MaxBitPerByteWhiteOutput-(8*iCurrentByte)) DOWNTO (MaxBitPerByteWhiteOutput-(8*((iCurrentByte+1))-1)) );
 				iByteWhiteOutputReady <= '0';
 			WHEN 3 =>
