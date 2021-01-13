@@ -13,9 +13,9 @@ entity DataCollector is
     Clk   	: in std_logic;        --Taktsignal des DataCollector
 
     data_valid : in std_logic;  						--data valid des Sensor Kontroll-Modul
-    acc_x 		 : in integer RANGE 0 to 65535; 	--x-achse des Sensor Kontroll-Modul; in m^2
-    acc_y 		 : in integer RANGE 0 to 65535; 	--y-achse des Sensor Kontroll-Modul; in m^2
-    acc_z 		 : in integer RANGE 0 to 65535; 	--z-achse des Sensor Kontroll-Modul; in m^2
+    acc_x 		 : in integer RANGE -32768 to 32767; 	--x-achse des Sensor Kontroll-Modul; in m^2
+    acc_y 		 : in integer RANGE -32768 to 32767; 	--y-achse des Sensor Kontroll-Modul; in m^2
+    acc_z 		 : in integer RANGE -32768 to 32767; 	--z-achse des Sensor Kontroll-Modul; in m^2
 
     FiFoEmpty : in std_logic;			--FiFo ist leer
 	 FiFoFull : in std_logic;			--FiFo ist voll
@@ -57,13 +57,13 @@ BEGIN
 			WHEN 1 =>
 				--Einfuegen der Daten in FiFo
 				FiFoWrreq <= '1';
-				FiFoData <= (std_logic_vector(to_unsigned(acc_x, 16))) & (std_logic_vector(to_unsigned(acc_y, 16))) & std_logic_vector(to_unsigned(acc_z, 16));
+				FiFoData <= (std_logic_vector(to_signed(acc_x, 16))) & (std_logic_vector(to_signed(acc_y, 16))) & std_logic_vector(to_signed(acc_z, 16));
 				PrintRejectedData <= '0';
 				iCntRejectedData <= 0;
 			WHEN 2 =>
 				--Wartet auf data_valid  '0'
 				FiFoWrreq <= '0';
-				FiFoData <= (std_logic_vector(to_unsigned(acc_x, 16))) & (std_logic_vector(to_unsigned(acc_y, 16))) & std_logic_vector(to_unsigned(acc_z, 16));
+				FiFoData <= (std_logic_vector(to_signed(acc_x, 16))) & (std_logic_vector(to_signed(acc_y, 16))) & std_logic_vector(to_signed(acc_z, 16));
 				PrintRejectedData <= '0';
 				iCntRejectedData <= CntRejectedData;
 			WHEN 3 =>
