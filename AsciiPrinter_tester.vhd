@@ -56,7 +56,7 @@ BEGIN
     IF iCLK = '0' THEN
       Clockcount <= Clockcount + 1;
     end if;
-    wait for 10ns;
+    wait for 10ns; --10ns
   end process ClockGenerator;
 
   --Simuliert die UART mit 115200 Baud; Dauer ~70µS um 8 Bit zu uebertragen
@@ -68,7 +68,7 @@ BEGIN
 			IF (LastTX_EN = '0') AND (TX_EN = '1') THEN
           counter := 0;
         END IF;
-        IF (counter < 3) THEN
+        IF (counter < 30) THEN
           counter := counter + 1;
           iTX_BUSY <= '1';
         ELSE
@@ -83,14 +83,14 @@ BEGIN
 	for i in 0 to 32 loop
 		CurrentTestValue <= 4;
 		CurrentTestState <= 2;
-		wait for 1us;
+		wait for 100ns;
 		CurrentTestState <= 1;
-		wait for 3us;
+		wait for 100ns;
 		CurrentTestState <= 2;
 		CurrentTestValue <= 5;
-		wait for 1us;
+		wait for 100ns;
 		CurrentTestState <= 1;
-		wait for 3us;
+		wait for 100ns;
 		end loop;  
 
   END process Testing;
