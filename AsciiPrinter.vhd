@@ -19,7 +19,7 @@ entity AsciiPrinter is
 		acc_z 		 : in integer RANGE -32768 to 32767; 	--z-achse des Sensor Kontroll-Modul; in m^2
 		
 		TX_BUSY 	 : in std_logic;                            --TX_Busy der UART
-		TX_EN 		 : out std_logic := '0';                 --TX_EN der UART
+		TX_EN 	 : out std_logic := '0';                 --TX_EN der UART
 		TX_DATA 	 : out std_logic_vector(7 downto 0):= x"00" --Eingangsbyte der UART; LSB hat Index 0
 	);
 end entity AsciiPrinter;
