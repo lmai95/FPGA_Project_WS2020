@@ -18,7 +18,7 @@
 #
 # Quartus II 64-Bit
 # Version 13.1.0 Build 162 10/23/2013 SJ Web Edition
-# Date created = 16:33:01  December 09, 2020
+# Date created = 14:49:30  January 13, 2021
 #
 # -------------------------------------------------------------------------- #
 #
@@ -38,48 +38,47 @@
 
 set_global_assignment -name FAMILY "Cyclone III"
 set_global_assignment -name DEVICE EP3C16F484C6
-set_global_assignment -name TOP_LEVEL_ENTITY GPU
+set_global_assignment -name TOP_LEVEL_ENTITY Projekt_VGA
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 13.1
-set_global_assignment -name PROJECT_CREATION_TIME_DATE "16:33:01  DECEMBER 09, 2020"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "14:49:30  JANUARY 13, 2021"
 set_global_assignment -name LAST_QUARTUS_VERSION 13.1
-set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
-set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
-set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
-set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
-set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
-set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
-set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH GPU_TB -section_id eda_simulation
-set_global_assignment -name EDA_NATIVELINK_SIMULATION_SETUP_SCRIPT Marcos.do -section_id eda_simulation
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name TIMEQUEST_DO_CCPP_REMOVAL ON
+set_global_assignment -name VHDL_FILE clk_generator.vhd
+set_global_assignment -name VHDL_FILE Projekt_VGA.vhd
+set_global_assignment -name VHDL_FILE VGA.vhd
+set_global_assignment -name VHDL_FILE VGA_WerteDarstellung.vhd
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name EDA_TEST_BENCH_NAME GPU_TB -section_id eda_simulation
-set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id GPU_TB
-set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME GPU_TB -section_id GPU_TB
-set_global_assignment -name EDA_TEST_BENCH_FILE GPU_Tester.vhd -section_id GPU_TB
-set_global_assignment -name EDA_TEST_BENCH_FILE GPU_TB.vhd -section_id GPU_TB
-set_location_assignment PIN_K18 -to blue[3]
-set_location_assignment PIN_J22 -to blue[2]
-set_location_assignment PIN_K21 -to blue[1]
-set_location_assignment PIN_J21 -to green[3]
-set_location_assignment PIN_K17 -to green[2]
-set_location_assignment PIN_J17 -to green[1]
-set_location_assignment PIN_H22 -to green[0]
-set_location_assignment PIN_L21 -to h_sync
-set_location_assignment PIN_H21 -to red[3]
-set_location_assignment PIN_H20 -to red[2]
-set_location_assignment PIN_H17 -to red[1]
+set_location_assignment PIN_L22 -to vsync
 set_location_assignment PIN_H19 -to red[0]
-set_location_assignment PIN_L22 -to v_sync
-set_global_assignment -name VHDL_FILE VGA_typ.vhd
-set_global_assignment -name VHDL_FILE Symbols.vhd
-set_global_assignment -name VHDL_FILE frame_buffer.vhd
-set_global_assignment -name VHDL_FILE plotter.vhd
-set_global_assignment -name VHDL_FILE VGA.vhd
-set_global_assignment -name VHDL_FILE GPU.vhd
+set_location_assignment PIN_H17 -to red[1]
+set_location_assignment PIN_H20 -to red[2]
+set_location_assignment PIN_H21 -to red[3]
+set_location_assignment PIN_L21 -to hsync
+set_location_assignment PIN_H22 -to green[0]
+set_location_assignment PIN_J17 -to green[1]
+set_location_assignment PIN_K17 -to green[2]
+set_location_assignment PIN_J21 -to green[3]
+set_location_assignment PIN_K22 -to blue[0]
+set_location_assignment PIN_K21 -to blue[1]
+set_location_assignment PIN_J22 -to blue[2]
+set_location_assignment PIN_K18 -to blue[3]
+set_location_assignment PIN_G21 -to clk
+set_location_assignment PIN_J6 -to rst
+set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF
+set_global_assignment -name ENABLE_NCE_PIN OFF
+set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF
+set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
+set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
+set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
