@@ -9,9 +9,9 @@ port(
   Clk : out std_logic;
 
   data_valid : out std_logic;--data valid des Sensor Kontroll-Modul
-  acc_x : out integer RANGE 0 to 65535; 		  --x-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  acc_y : out integer RANGE 0 to 65535; 		  --y-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  acc_z : out integer RANGE 0 to 65535; 		  --z-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_x : out integer RANGE -32768 to 32767; 		  --x-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_y : out integer RANGE -32768 to 32767; 		  --y-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_z : out integer RANGE -32768 to 32767; 		  --z-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
   TX_BUSY : out std_logic;                           --TX_Busy der UART
   TX_EN : in std_logic := '0';                       --TX_EN der UART
   TX_DATA : in std_logic_vector(7 downto 0) := x"00"  --Eingangsbyte der UART; LSB hat Index 0
@@ -20,7 +20,7 @@ end entity AsciiPrinter_tester;
 
 architecture test of AsciiPrinter_tester is
   type TestValue is record
-    acc_x, acc_y, acc_z : integer RANGE 0 to 65535;
+    acc_x, acc_y, acc_z : integer RANGE -32768 to 32767;
 	end record;
   type TestValueArray is array (natural range <>) of TestValue;
 	constant TestValues : TestValueArray :=(
@@ -29,7 +29,7 @@ architecture test of AsciiPrinter_tester is
     (3, 2, 1),
     (4, 3, 2),
 	 (0, 0, 0),
-	 (65535, 65535, 65535)	 
+	 (-32768, 0, 32767)	 
   );
   type TestState is record
       EN, Reset, data_valid : std_logic;
