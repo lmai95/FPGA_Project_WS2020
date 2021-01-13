@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.BufferData.all;
 
 entity TextGenerator is
   generic(
@@ -27,7 +26,7 @@ end entity TextGenerator;
 architecture behave of TextGenerator is
   signal IntToLogicVectorReady : std_logic := '1';		--Bei '1' Prozess IntToLogicVector kann die naechste Wandlung durchfuehren
   signal IntToLogicVectorTrigger : std_logic := '0';	--Startet den Prozess IntToLogicVector durch eine '1'
-  signal IntToLogicVectorIntInput : integer RANGE 0 to 65535 := 0;	--Zu Wandelnder Wert von IntToLogicVector
+  signal IntToLogicVectorIntInput : integer RANGE -32768 to 32767 := 0;	--Zu Wandelnder Wert von IntToLogicVector
   signal IntToLogicVectorBinOutput 	: std_logic_vector(47 downto 0) := (others =>'0'); --Ergebnis der Wandlung des Prozesses IntToLogicVector
   signal iIntToLogicVectorBinOutput 	: std_logic_vector(47 downto 0) := (others =>'0');
   signal IntToLogicVectorStep : integer RANGE 0 to	8 := 0;		--aktueller Zustand der FSM des Prozesses IntToLogicVector
@@ -163,42 +162,42 @@ architecture behave of TextGenerator is
 			--Erzeugt den Text "x:" & Triggert die Wandlung fuer den Wert acc_x
 			FiFoRdreq <= '0';
 			iByteWhiteOutputBuffer(223 downto 208) <= x"783A"; --Text "x:"
-			IntToLogicVectorIntInput <= to_integer(unsigned(DataFromFiFo(47 DOWNTO 32)));
+			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(47 DOWNTO 32)));
 			IntToLogicVectorTrigger <= '1';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 2) THEN
 			--Wartet bis die Wandlung abgeschlossen ist (IntToLogicVectorReady='1')
 			FiFoRdreq <= '0';
 			iByteWhiteOutputBuffer(207 downto 160) <= IntToLogicVectorBinOutput;
-			IntToLogicVectorIntInput <= to_integer(unsigned(DataFromFiFo(47 DOWNTO 32)));
+			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(47 DOWNTO 32)));
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 3) THEN
 			--Erzeugt den Text " y:" & Triggert die Wandlung fuer den Wert acc_y
 			FiFoRdreq <= '0';
 			iByteWhiteOutputBuffer(159 downto 136) <= x"20793A"; --Text " y:"
-			IntToLogicVectorIntInput <= to_integer(unsigned(DataFromFiFo(31 DOWNTO 16)));
+			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(31 DOWNTO 16)));
 			IntToLogicVectorTrigger <= '1';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 4) THEN
 			--Wartet bis die Wandlung abgeschlossen ist (IntToLogicVectorReady='1')	
 			FiFoRdreq <= '0';
 			iByteWhiteOutputBuffer(135 downto 88) <= IntToLogicVectorBinOutput;
-			IntToLogicVectorIntInput <= to_integer(unsigned(DataFromFiFo(31 DOWNTO 16)));
+			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(31 DOWNTO 16)));
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 5) THEN
 			--Erzeugt den Text " z:" & Triggert die Wandlung fuer den Wert acc_z	
 			FiFoRdreq <= '0';
 			iByteWhiteOutputBuffer(87 downto 64) <= x"207A3A"; --Text " z:"
-			IntToLogicVectorIntInput <= to_integer(unsigned(DataFromFiFo(15 DOWNTO 0)));
+			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(15 DOWNTO 0)));
 			IntToLogicVectorTrigger <= '1';
 			ByteWhiteOutputTrigger <= '0';	
 		ELSIF (PrepareNextLineStep = 6) THEN
 			--Wartet bis die Wandlung abgeschlossen ist & die Ausgabe Bereit ist (IntToLogicVectorReady='1' && ByteWhiteOutputReady='1') & Erzeugt den Text "\n\r"
 			FiFoRdreq <= '0';
 			iByteWhiteOutputBuffer(63 downto 0) <= IntToLogicVectorBinOutput & x"0A0D"; --Text "\n\r"
-			IntToLogicVectorIntInput <= to_integer(unsigned(DataFromFiFo(15 DOWNTO 0)));
+			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(15 DOWNTO 0)));
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 7) THEN
