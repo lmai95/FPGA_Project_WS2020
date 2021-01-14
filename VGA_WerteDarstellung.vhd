@@ -1,332 +1,177 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
+USE work.bitmaps.ALL;
 
-entity VGA_WerteDarstellung is
-	port(
-			clk	: in std_logic;
-			rst	: in std_logic;
-			screen_on : in std_logic;
-			hpos : in integer;
-			vpos : in integer;
-			rgb	: out std_logic_vector(11 downto 0)
-		);
-end entity VGA_WerteDarstellung;
+ENTITY VGA_WerteDarstellung IS
+  PORT
+  (
+    clk       : IN STD_LOGIC;
+    rst       : IN STD_LOGIC;
+    screen_on : IN STD_LOGIC;
+    X         : IN INTEGER;
+    Y         : IN INTEGER;
+    rgb       : OUT STD_LOGIC_VECTOR(11 DOWNTO 0)
+  );
+END ENTITY VGA_WerteDarstellung;
+ARCHITECTURE behave OF VGA_WerteDarstellung IS
+  FUNCTION print_bitmap(
+    X        : INTEGER;                       --current pixel position x-direction
+    x_pos    : INTEGER;                       --target pixel position x-direction
+    Y        : INTEGER;                       --current pixel position y-direction
+    y_pos    : INTEGER;                       --target pixel position y-direction
+    rot      : rotation;                      --rotaion of the bitmap
+    bmp      : bitmap_zeichen;                --bitmap to be printed
+    rgb      : STD_LOGIC_VECTOR(11 DOWNTO 0); --the current value of the variabel written to to check if the is already something displayed
+    col      : STD_LOGIC_VECTOR(11 DOWNTO 0); --the color of the bit map printed 
+    back_col : STD_LOGIC_VECTOR(11 DOWNTO 0)) --the color of the backround where the Bitmap is '0'
 
-architecture behave of VGA_WerteDarstellung is
+    RETURN STD_LOGIC_VECTOR IS
+  BEGIN
+    IF rgb = x"000" THEN
+      CASE rot IS
+        WHEN zero =>
+          IF (X >= x_pos AND Y >= Y_pos AND X < (x_pos + 10) AND Y < (y_pos + 14)) THEN --check if in rage of the bitmap position 
+            IF (bmp(y - y_pos)(x - x_pos) = '1') THEN --check if bitmap reads 0 or 1 , 
+              RETURN col;
+            ELSE
+              RETURN back_col;
+            END IF;
+          ELSE
+            RETURN x"000";
+          END IF;
+        WHEN ninety =>
+          IF (X >= x_pos AND Y >= Y_pos AND X < (x_pos + 14) AND Y < (y_pos + 10)) THEN --check if in rage of the bitmap position 
+            IF (bmp(12 - (x - x_pos))(9 - (y - y_pos)) = '1') THEN --check if bitmap reads 0 or 1 , 
+              RETURN col;
+            ELSE
+              RETURN back_col;
+            END IF;
+          ELSE
+            RETURN x"000";
+          END IF;
+        WHEN one_eighty =>
+          IF (X >= x_pos AND Y >= Y_pos AND X < (x_pos + 10) AND Y < (y_pos + 14)) THEN --check if in rage of the bitmap position 
+            IF (bmp(12 - (y - y_pos))(9 - (x - x_pos)) = '1') THEN --check if bitmap reads 0 or 1 , 
+              RETURN col;
+            ELSE
+              RETURN back_col;
+            END IF;
+          ELSE
+            RETURN x"000";
+          END IF;
+        WHEN two_seventy =>
+          IF (X >= x_pos AND Y >= Y_pos AND X < (x_pos + 14) AND Y < (y_pos + 10)) THEN --check if in rage of the bitmap position 
+            IF (bmp(x - x_pos)(y - y_pos) = '1') THEN --check if bitmap reads 0 or 1 , 
+              RETURN col;
+            ELSE
+              RETURN back_col;
+            END IF;
+          ELSE
+            RETURN x"000";
+          END IF;
+      END CASE;
+    ELSE
+      RETURN rgb;
+    END IF;
+  END print_bitmap;
 
-	type bitmap_zeichen is array(0 to 13) of std_logic_vector(0 to 9);
-	constant bitmap_0 : bitmap_zeichen := 	("0111111100",
-														 "1111111110",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "1100010110",
-														 "1100110110",
-														 "1101100110",
-														 "1101000110",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "1111111110",
-														 "0111111100");
-	constant bitmap_1 : bitmap_zeichen := 	("0111000000",
-														 "1111000000",
-														 "0011000000",
-														 "0011000000",
-														 "0011000000",
-														 "0011000000",
-														 "0011000000",
-														 "0011000000",
-														 "0011000000",
-														 "0011000000",
-														 "0011000000",
-														 "0011000000",
-														 "1111110000",
-														 "1111110000");
-	constant bitmap_2 : bitmap_zeichen := 	("0111111100",
-														 "1111111110",
-														 "1100000110",
-														 "0000000110",
-														 "0000000110",
-														 "0000001110",
-														 "0000011100",
-														 "0000111000",
-														 "0001110000",
-														 "0011100000",
-														 "0111000000",
-														 "1110000000",
-														 "1111111110",
-														 "1111111110");
-	constant bitmap_3 : bitmap_zeichen := 	("1111111110",
-														 "1111111110",
-														 "0000001110",
-														 "0000011100",
-														 "0000111000",
-														 "0001110000",
-														 "0011111100",
-														 "0011111110",
-														 "0000000110",
-														 "0000000110",
-														 "0000000110",
-														 "1100000110",
-														 "1111111110",
-														 "0111111100");
-	constant bitmap_4 : bitmap_zeichen := 	("0000011100",
-														 "0000111100",
-														 "0001101100",
-														 "0001101100",
-														 "0011001100",
-														 "0011001100",
-														 "0110001100",
-														 "0110001100",
-														 "1100001100",
-														 "1111111111",
-														 "1111111111",
-														 "0000001100",
-														 "0000001100",
-														 "0000001100");
-	constant bitmap_5 : bitmap_zeichen := 	("1111111110",
-														 "1111111110",
-														 "1100000000",
-														 "1100000000",
-														 "1100000000",
-														 "1100000000",
-														 "1111111100",
-														 "0111111110",
-														 "0000000110",
-														 "0000000110",
-														 "0000000110",
-														 "1100000110",
-														 "1111111110",
-														 "0111111100");
-	constant bitmap_6 : bitmap_zeichen := 	("0111111100",
-														 "1111111110",
-														 "1100000110",
-														 "1100000000",
-														 "1100000000",
-														 "1100000000",
-														 "1111111100",
-														 "1111111110",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "1111111110",
-														 "0111111100");
-	constant bitmap_7 : bitmap_zeichen := 	("1111111110",
-														 "1111111110",
-														 "0000000110",
-														 "0000001100",
-														 "0000001100",
-														 "0000011000",
-														 "0000011000",
-														 "0000110000",
-														 "0000110000",
-														 "0001100000",
-														 "0001100000",
-														 "0011000000",
-														 "0011000000",
-														 "0011000000");
-	constant bitmap_8 : bitmap_zeichen := 	("0111111100",
-														 "1111111110",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "0111111100",
-														 "0111111100",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "1111111110",
-														 "0111111100");
-	constant bitmap_9 : bitmap_zeichen := 	("0111111100",
-														 "1111111110",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "1100000110",
-														 "0111111110",
-														 "0111111110",
-														 "0000000110",
-														 "0000000110",
-														 "0000000110",
-														 "1100000110",
-														 "1111111110",
-														 "0111111100");
-	constant bitmap_x : bitmap_zeichen :=	("1100000110",
-														 "1100000110",
-														 "0110001100",
-														 "0110001100",
-														 "0011011000",
-														 "0011011000",
-														 "0001110000",
-														 "0001110000",
-														 "0011011000",
-														 "0011011000",
-														 "0110001100",
-														 "0110001100",
-														 "1100000110",
-														 "1100000110");
-	constant bitmap_y : bitmap_zeichen := 	("1000000001",
-														 "1100000011",
-														 "1100000011",
-														 "0110000110",
-														 "0110000110",
-														 "0011001100",
-														 "0011001100",
-														 "0001111000",
-														 "0001111000",
-														 "0000110000",
-														 "0000110000",
-														 "0000110000",
-														 "0000110000",
-														 "0000110000");
-	constant bitmap_z : bitmap_zeichen := 	("1111111110",
-														 "1111111110",
-														 "0000001110",
-														 "0000011100",
-														 "0000011000",
-														 "0000110000",
-														 "0000110000",
-														 "0001100000",
-														 "0001100000",
-														 "0011000000",
-														 "0111000000",
-														 "1110000000",
-														 "1111111110",
-														 "1111111110");
-	constant bitmap_dpl_pkt : bitmap_zeichen := ("0000000000",
-															 "0000000000",
-															 "0000000000",
-															 "0000110000",
-															 "0000110000",
-															 "0000000000",
-															 "0000000000",
-															 "0000000000",
-															 "0000000000",
-															 "0000110000",
-															 "0000110000",
-															 "0000000000",
-															 "0000000000",
-															 "0000000000");
-	constant bitmap_pkt : bitmap_zeichen 	 :=("0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000110000",
-														 "0000110000");
-	constant bitmap_minus : bitmap_zeichen :=("0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0001111000",
-														 "0001111000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000");
-	constant bitmap_empty : bitmap_zeichen := ("0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000",
-														 "0000000000");
-	
-	constant vpos_draw_x : integer := 30;		
-	constant vpos_draw_y : integer := 60;
-	constant vpos_draw_z : integer := 90;
-	
-	type hpos_array is array(0 to 5) of integer;
-	constant h_draw : hpos_array := (30, 45, 55, 65, 75, 85);
-	
-	type bitmap_array is array(0 to 5) of bitmap_zeichen;
-	signal x_bitmaps : bitmap_array := (bitmap_x, bitmap_dpl_pkt, bitmap_empty, bitmap_4, bitmap_pkt, bitmap_y);
-	signal y_bitmaps : bitmap_array := (bitmap_y, bitmap_dpl_pkt, bitmap_empty, bitmap_5, bitmap_pkt, bitmap_6);
-	signal z_bitmaps : bitmap_array := (bitmap_z, bitmap_dpl_pkt, bitmap_empty, bitmap_8, bitmap_pkt, bitmap_9);
-	
-begin
 
-	x_bitmaps(5) <= bitmap_4;
-	y_bitmaps(3) <= bitmap_1;
-	z_bitmaps(5) <= bitmap_7;
-	
-	Darstellung : process(clk, rst, hpos, vpos, screen_on)
-		begin
-			if rst = '0' then
-				rgb <= x"000";
-			elsif rising_edge(clk) then
-				if screen_on = '1' then
-					if vpos <= vpos_draw_z + 13 and hpos <= h_draw(h_draw'high) + 9 then
-						rgb <= x"000";
-						for i in 0 to h_draw'high loop
-							if (hpos >= h_draw(i) and hpos <= h_draw(i) + 9) and (vpos >= vpos_draw_x and vpos <= vpos_draw_x + 13) then
-								if (x_bitmaps(i)(vpos-vpos_draw_x)(hpos - h_draw(i)) = '1')
-									then
-									rgb <= x"F00";
-								else
-									rgb <= x"000";
-								end if;
-							elsif (hpos >= h_draw(i) and hpos <= h_draw(i) + 9) and (vpos >= vpos_draw_y and vpos <= vpos_draw_y + 13) then
-								if (y_bitmaps(i)(vpos-vpos_draw_y)(hpos - h_draw(i)) = '1')
-									then
-									rgb <= x"0F0";
-								else
-									rgb <= x"000";
-								end if;
-							elsif (hpos >= h_draw(i) and hpos <= h_draw(i) + 9) and (vpos >= vpos_draw_z and vpos <= vpos_draw_z + 13) then
-								if (z_bitmaps(i)(vpos-vpos_draw_z)(hpos - h_draw(i)) = '1')
-									then
-									rgb <= x"00F";
-								else
-									rgb <= x"000";
-								end if;
-							end if;
-						end loop;
-				
-					elsif ((hpos > 30 and hpos < 32) and (vpos > 150 and vpos < 450)) or
-							((hpos > 30 and hpos < 570) and (vpos = 450))
-						then
-							rgb <= x"222";
-							
-					elsif((hpos > 30 and hpos < 570) and (vpos = 250))
-						then
-							rgb <= x"090";
-					elsif((hpos > 30 and hpos < 570) and (vpos = 300))
-						then
-							rgb <= x"00B";
-					elsif((hpos > 30 and hpos < 570) and (vpos = 430))
-						then
-							rgb <= x"900";
-					else
-						rgb <= x"000";
-					end if;
-				else
-					rgb <= x"000";
-				end if;
-			end if;
-		end process;
-		
-end architecture behave;
+  FUNCTION print_any_line (
+    X       : INTEGER;                       --current pixel position x-direction
+    x_start : INTEGER;                       --target start pixel position x-direction
+    x_stop  : INTEGER;                       --target stop pixel position x-direction
+    Y       : INTEGER;                       --current pixel position y-direction
+    y_start : INTEGER;                       --target  start pixel position y-direction
+    y_stop  : INTEGER;                       --target  stop pixel position y-direction
+    rgb     : STD_LOGIC_VECTOR(11 DOWNTO 0); --the current value of the variabel written to to check if the is already something displayed
+    col     : STD_LOGIC_VECTOR(11 DOWNTO 0))	--the color of the bit map printed 
+	 RETURN STD_LOGIC_VECTOR IS
+	  
+    VARIABLE fp_dx : INTEGER;
+    VARIABLE fp_dy : INTEGER;
+    VARIABLE fp_x : INTEGER;
+    VARIABLE fp_y : INTEGER;
+    VARIABLE fp_f : INTEGER;
+  BEGIN
+    IF (X >= x_start) AND (X <= X_stop) AND (Y >= y_start) AND (y <= y_stop) THEN --check if in area where the line is drawn
+      -- Bresenham-Algorithmus 
+      fp_x := x_start sla 4; --bitshift Integervalue to allow for fractions
+      fp_y := y_start sla 4; --bitshift Integervalue to allow for fractions
+      fp_dx := (x_stop sla 4) - (x_start sla 4); --bitshift Integervalue to allow for fractions
+      fp_dy := (y_stop sla 4) - (y_start sla 4); --bitshift Integervalue to allow for fractions
+      IF dx > dy THEN --check if x is the fast direction
+        fp_f := fp_dx sra 1; --shift back 1 bit (is equal to halving)
+        FOR I IN x_start TO x_stop LOOP
+          fp_x := fp_x + 1 sla 4; --Increment fast direction
+          fp_f := fp_f - fp_dy; --recalculate the error value with the slow direction
+          IF fp_f < 0 THEN --if error smaler than 0 
+            fp_y := fp_y + 1; --Increment slow direction
+            fp_f := fp_f + fp_dx; --recalculate the error value with the fast direction
+          END IF;
+          IF (fp_y sra 4) = y AND (fp_x sra 4) = x THEN --check if callculated pixel is current pixel 
+            RETURN col; --return the RGB value
+          END IF;
+        END LOOP;
+        RETURN x"000";
+      ELSE
+        fp_f := fp_dy sra 1; --shift back 1 bit (is equal to halving)
+        FOR I IN y_start TO y_stop LOOP
+          fp_y := fp_y + 1 sla 4; --Increment fast direction
+          fp_f := fp_f - fp_dx; --recalculate the error value with the slow direction
+          IF fp_f < 0 THEN --if error smaler than 0 
+            fp_x := fp_x + 1; --Increment slow direction
+            fp_f := fp_f + fp_dy; --recalculate the error value with the fast direction
+          END IF;
+          IF (fp_y sra 4) = y AND (fp_x sra 4) = x THEN --check if callculated pixel is current pixel 
+            RETURN col; --return the RGB value
+          END IF;
+        END LOOP;
+      END IF;
+      RETURN x"000";
+    ELSE
+      RETURN x"000";
+    END IF;
+  END print_any_line;
+
+  CONSTANT X_draw_hight : INTEGER := 30;
+  CONSTANT Y_draw_hight : INTEGER := 60;
+  CONSTANT Z_draw_hight : INTEGER := 90;
+  TYPE bitmap_string IS ARRAY(0 TO 5) OF bitmap_zeichen;
+  SIGNAL x_string : bitmap_string := (bitmap_x, bitmap_dpl_pkt, bitmap_empty, bitmap_4, bitmap_pkt, bitmap_8);
+  SIGNAL y_string : bitmap_string := (bitmap_y, bitmap_dpl_pkt, bitmap_empty, bitmap_5, bitmap_pkt, bitmap_6);
+  SIGNAL z_string : bitmap_string := (bitmap_z, bitmap_dpl_pkt, bitmap_empty, bitmap_8, bitmap_pkt, bitmap_9);
+
+  SIGNAL drawable : BOOLEAN := false;
+  SIGNAL border : BOOLEAN := false;
+  SIGNAL y_axis : BOOLEAN := false;
+  SIGNAL y_arrow : BOOLEAN := false;
+  SIGNAL x_axis : BOOLEAN := false;
+  SIGNAL x_arrow : BOOLEAN := false;
+
+BEGIN
+  Darstellung : PROCESS (clk, rst, X, Y, screen_on)
+    VARIABLE RGB_sig : STD_LOGIC_VECTOR(11 DOWNTO 0);
+  BEGIN
+    IF rst = '0' THEN
+      RGB_sig := x"000";
+    ELSIF rising_edge(clk) THEN
+      RGB_sig := x"000";
+      IF drawable THEN
+        IF border THEN
+          RGB_sig := x"111";
+        ELSIF y_axis OR x_axis THEN
+          RGB_sig := x"FFF";
+        ELSE
+          RGB_sig := print_bitmap(X, 6, Y, 110, zero, arrow, RGB_sig, x"FFF", x"000");
+          RGB_sig := print_bitmap(X, 624, Y, 455, ninety, arrow, RGB_sig, x"FFF", x"000");
+        END IF;
+      ELSE
+        RGB_sig := x"000";
+      END IF;
+    END IF;
+    rgb <= RGB_sig;
+  END PROCESS;
+  drawable <= (X < 639 AND Y < 479);
+
+END ARCHITECTURE behave;
