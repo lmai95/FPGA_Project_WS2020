@@ -43,8 +43,8 @@ architecture behave of Projekt_VGA is
 			clk	: in std_logic;
 			rst	: in std_logic;
 			screen_on : in std_logic;
-			hpos : in integer;
-			vpos : in integer;
+			X : in integer;
+			Y : in integer;
 			rgb	: out std_logic_vector(11 downto 0)
 		);
 	end component;
@@ -87,8 +87,8 @@ begin
 			clk	=> clk_25,
 			rst	=> rst,
 			screen_on => screen_on,
-			hpos => hpos,
-			vpos => vpos,
+			X => hpos,
+			y => vpos,
 			rgb	=> rgb
 		);
 
