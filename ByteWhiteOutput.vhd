@@ -4,17 +4,17 @@ use ieee.numeric_std.all;
 
 entity ByteWhiteOutput is
   generic(
-    MaxBitPerByteWhiteOutput : integer := 223 --Legt die Anazahl der Bit's fest (inclusive Wert 0..) die ByteWhiteOutput aufeinmal verarbeitet; ->28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
+    MaxBitPerByteWhiteOutput : integer := 247 --Legt die Anazahl der Bit's fest (inclusive Wert 0..) die ByteWhiteOutput aufeinmal verarbeitet; ->31 ASCII-Zeichen: 3xacc=18 + 3xPunkt + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
   );
   port(
     EN 	  	: in std_logic := '1'; --Enable Signal des ByteWhiteOutput
     Reset 	: in std_logic := '0'; --Reset Signal des ByteWhiteOutput
     Clk   	: in std_logic;        --Clock Signal des ByteWhiteOutput
-	 
+
     ByteWhiteOutputReady : out std_logic := '1';  --Bei '1' bereit die naechste Zeile auszugeben
     ByteWhiteOutputTrigger : in std_logic;        --Startet die Ausgabe duch den Wert '1'
     ByteWhiteOutputBuffer : in std_logic_vector(MaxBitPerByteWhiteOutput downto 0); --Die Daten/Die Zeile die Ausgegebn werden soll
-	 
+
     TX_BUSY : in std_logic := '0';                      --TX_BUSY der UART
     TX_EN 	: out std_logic := '0';                     --TX_EN der UART
     TX_DATA : out std_logic_vector(7 downto 0):= x"00"  --Eingangsbyte der UART; LSB Index 0
@@ -93,7 +93,7 @@ BEGIN
 					WHEN 2 =>
 						IF (TX_BUSY = '0') AND (iCurrentByte < ((MaxBitPerByteWhiteOutput+1)/8)) THEN
 							IF (iTX_DATA = x"0D") THEN	  --"\r" erkannt
-								NextStep <= 4; 
+								NextStep <= 4;
 							ELSE
 								NextStep <= 3; --Es stehen weitere Daten zur Ausgabe Bereit
 							END IF;

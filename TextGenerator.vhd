@@ -4,19 +4,19 @@ use ieee.numeric_std.all;
 
 entity TextGenerator is
   generic(
-    MaxBitPerByteWhiteOutput : integer := 223 --Legt die Anazahl der Bit's fest (inclusive Wert 0..) die ByteWhiteOutput aufeinmal verarbeitet; ->28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
+    MaxBitPerByteWhiteOutput : integer := 247 --Legt die Anazahl der Bit's fest (inclusive Wert 0..) die ByteWhiteOutput aufeinmal verarbeitet; ->31 ASCII-Zeichen: 3xacc=18 + 3xPunkt + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
   );
   port(
     EN 	  	: in std_logic := '1'; --Enable Signal des TextGenerators
     Reset 	: in std_logic := '0'; --Reset Signal des TextGenerators
     Clk   	: in std_logic;		  --Clock Signal des TextGenerators
-	 
+
     FiFoEmpty : in std_logic;			--FiFo ist leer
 	 FiFoRdreq : out std_logic; 		--FiFo Read-Acknowledge
     DataFromFiFo : in STD_LOGIC_VECTOR (47 DOWNTO 0); --Eingangsdaten aus der FiFo
 	 PrintRejectedData : in std_logic;						--Bei '1': Die Anzahl der nicht verarbeitbaren Messungen (RejectedData) soll ausgaben werden
     RejectedData : integer RANGE 0 to 65536 := 0; 		--Anzahl der Datensaetze die Verworfen werden mussten
-	 
+
 	 ByteWhiteOutputReady : in std_logic;					--Bei '1' bereit die naechste Zeile auszugeben
     ByteWhiteOutputTrigger : out std_logic;				--Startet die Ausgabe duch den Wert '1'
     ByteWhiteOutputBuffer : out std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0')--Die Daten/Die Zeile die Ausgegebn werden soll
@@ -31,10 +31,10 @@ architecture behave of TextGenerator is
   signal iIntToLogicVectorBinOutput 	: std_logic_vector(47 downto 0) := (others =>'0');
   signal IntToLogicVectorStep : integer RANGE 0 to	8 := 0;		--aktueller Zustand der FSM des Prozesses IntToLogicVector
   signal IntToLogicVectorNextStep : integer RANGE 0 to 8 := 0; --naechster Zustand der FSM des Prozesses IntToLogicVector
-  
+
   signal PrepareNextLineStep : integer Range 0 to 30 := 0;
   signal PrepareNextLineNextStep : integer Range 0 to 30 := 0;
-  signal iByteWhiteOutputBuffer : std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0'); --Speicher fuer die Ausgabe der naechsten Zeile; 28 ASCII-Zeichen: 3xacc=18 + Zeilenumbruch=2 + Leerzeichen=2 + Text=6  
+  signal iByteWhiteOutputBuffer : std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0'); --Speicher fuer die Ausgabe der naechsten Zeile; 31 ASCII-Zeichen: 3xacc=18 + 3xPunkt + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
   BEGIN
   --Wandelt die (signed) Integer Zahl IntToLogicVectorIntInput in eine ASCII Zeichen-Darstellung. Annahme: 16Bit-Integer daher mit Vorzeichen 6-ASCI Zeichen.
   --Die Umwandlung wird gestartet indem IntToLogicVectorTrigger auf '1' gesetzt wird. Das Ergbnis der Wandlung wird in IntToLogicVectorBinOutput ausgegben.
@@ -46,16 +46,16 @@ architecture behave of TextGenerator is
   BEGIN
     IF (Reset = '1') THEN
       IntUnderConversion := 0;
-		Digit := 0;
-		Cutout := (others =>'0');
-		iIntToLogicVectorBinOutput <= (others =>'0');
+		  Digit := 0;
+		  Cutout := (others =>'0');
+		  iIntToLogicVectorBinOutput <= (others =>'0');
       IntToLogicVectorReady <= '1';
     ELSIF (rising_edge(Clk)) THEN
       IF (IntToLogicVectorStep = 0) THEN
 			--Wartet auf Trigger '1'
 			iIntToLogicVectorBinOutput <= IntToLogicVectorBinOutput;
 			IntToLogicVectorReady <= '1';
-		ELSIF (IntToLogicVectorStep = 1) THEN	
+		ELSIF (IntToLogicVectorStep = 1) THEN
 			--Setzt die Ausgabe zurueck
 			iIntToLogicVectorBinOutput <= IntToLogicVectorBinOutput;
 			iIntToLogicVectorBinOutput <= (others =>'0');
@@ -98,7 +98,7 @@ architecture behave of TextGenerator is
       END IF;
     END IF;
   end process IntToLogicVector;
-  
+
   IntToLogicVectorNextState: process(Reset, Clk, EN, IntToLogicVectorStep, IntToLogicVectorTrigger)
   BEGIN
 	IF Reset = '1' THEN
@@ -112,7 +112,7 @@ architecture behave of TextGenerator is
 				WHEN 1 =>
 					IntToLogicVectorNextStep <= 2;
 				WHEN 2 =>
-					IntToLogicVectorNextStep <= 3;	
+					IntToLogicVectorNextStep <= 3;
 				WHEN 3 =>
 					IntToLogicVectorNextStep <= 4;
 				WHEN 4 =>
@@ -133,11 +133,11 @@ architecture behave of TextGenerator is
   end process IntToLogicVectorNextState;
   IntToLogicVectorStep <= IntToLogicVectorNextStep;
   IntToLogicVectorBinOutput <= iIntToLogicVectorBinOutput;
-    
-  
+
+
   --ToDo Ausgabe der beiden Zaehler mit der Anzahl der verworfenen Messungen
   --Erzeugt einen Text in Ascii-Codierung zur Ausgabe. Ist aktiv falls EN = '1' ist.
-  --Erzeugt aus den Daten der FiFo den Text: "x:+/-_____ y:+/-_____ z:+/-_____\n\r", wenn Daten vorhanden sind.
+  --Erzeugt aus den Daten der FiFo den Text: "x:+/-___.__ y:+/-___.__ z:+/-___.__\n\r", wenn Daten vorhanden sind.
   --Falls PrintRejectedData auf '1' gesetz wird, wird der Text: "+/-_____\n\r" erzeugt.
   --Weitere Byteweise ausgabe erfolgt ueber die Entity ByteWhiteOutput.
   PrepareNextLine: process(Reset, Clk)
@@ -148,7 +148,7 @@ architecture behave of TextGenerator is
       IntToLogicVectorIntInput <= 0;
 		IntToLogicVectorTrigger <= '0';
       ByteWhiteOutputTrigger <= '0';
-    ELSIF (rising_edge(Clk)) THEN       
+    ELSIF (rising_edge(Clk)) THEN
 		IF (PrepareNextLineStep = 0) THEN
 			--Grundzustand wartet auf Daten oder auf PrintRejectedData = '1'
 			FiFoRdreq <= '0';
@@ -156,47 +156,54 @@ architecture behave of TextGenerator is
 			IntToLogicVectorIntInput <= 0;
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '0';
-			
-		--Erzeugt aus den Daten der FiFo den Text: "x:+/-_____ y:+/-_____ z:+/-_____\n\r" & Triggert die Ausgabe	
+
+		--Erzeugt aus den Daten der FiFo den Text: "x:+/-___.__ y:+/-___.__ z:+/-___.__\n\r" & Triggert die Ausgabe
 		ELSIF (PrepareNextLineStep = 1) THEN
 			--Erzeugt den Text "x:" & Triggert die Wandlung fuer den Wert acc_x
 			FiFoRdreq <= '0';
-			iByteWhiteOutputBuffer(223 downto 208) <= x"783A"; --Text "x:"
+			iByteWhiteOutputBuffer(247 downto 232) <= x"783A"; --Text "x:"
 			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(47 DOWNTO 32)));
 			IntToLogicVectorTrigger <= '1';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 2) THEN
 			--Wartet bis die Wandlung abgeschlossen ist (IntToLogicVectorReady='1')
 			FiFoRdreq <= '0';
-			iByteWhiteOutputBuffer(207 downto 160) <= IntToLogicVectorBinOutput;
+			iByteWhiteOutputBuffer(231 downto 200) <= IntToLogicVectorBinOutput(47 downto 16);
+      iByteWhiteOutputBuffer(199 downto 192) <= x"2E"; -- Text "."
+      iByteWhiteOutputBuffer(191 downto 176)<= IntToLogicVectorBinOutput(15 downto 0);
 			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(47 DOWNTO 32)));
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 3) THEN
 			--Erzeugt den Text " y:" & Triggert die Wandlung fuer den Wert acc_y
 			FiFoRdreq <= '0';
-			iByteWhiteOutputBuffer(159 downto 136) <= x"20793A"; --Text " y:"
+			iByteWhiteOutputBuffer(175 downto 152) <= x"20793A"; --Text " y:"
 			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(31 DOWNTO 16)));
 			IntToLogicVectorTrigger <= '1';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 4) THEN
-			--Wartet bis die Wandlung abgeschlossen ist (IntToLogicVectorReady='1')	
+			--Wartet bis die Wandlung abgeschlossen ist (IntToLogicVectorReady='1')
 			FiFoRdreq <= '0';
-			iByteWhiteOutputBuffer(135 downto 88) <= IntToLogicVectorBinOutput;
+			iByteWhiteOutputBuffer(151 downto 120) <= IntToLogicVectorBinOutput(47 downto 16);
+      iByteWhiteOutputBuffer(119 downto 112) <= x"2E"; -- Text "."
+      iByteWhiteOutputBuffer(111 downto 96)<= IntToLogicVectorBinOutput(15 downto 0);
 			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(31 DOWNTO 16)));
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 5) THEN
-			--Erzeugt den Text " z:" & Triggert die Wandlung fuer den Wert acc_z	
+			--Erzeugt den Text " z:" & Triggert die Wandlung fuer den Wert acc_z
 			FiFoRdreq <= '0';
-			iByteWhiteOutputBuffer(87 downto 64) <= x"207A3A"; --Text " z:"
+			iByteWhiteOutputBuffer(95 downto 72) <= x"207A3A"; --Text " z:"
 			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(15 DOWNTO 0)));
 			IntToLogicVectorTrigger <= '1';
-			ByteWhiteOutputTrigger <= '0';	
+			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 6) THEN
 			--Wartet bis die Wandlung abgeschlossen ist & die Ausgabe Bereit ist (IntToLogicVectorReady='1' && ByteWhiteOutputReady='1') & Erzeugt den Text "\n\r"
 			FiFoRdreq <= '0';
-			iByteWhiteOutputBuffer(63 downto 0) <= IntToLogicVectorBinOutput & x"0A0D"; --Text "\n\r"
+			iByteWhiteOutputBuffer(71 downto 40) <= IntToLogicVectorBinOutput(47 downto 16);
+      iByteWhiteOutputBuffer(39 downto 32) <= x"2E"; -- Text "."
+      iByteWhiteOutputBuffer(31 downto 16) <= IntToLogicVectorBinOutput(15 downto 0);
+      iByteWhiteOutputBuffer(15 downto 0) <= x"0A0D"; --Text "\n\r"
 			IntToLogicVectorIntInput <= to_integer(signed(DataFromFiFo(15 DOWNTO 0)));
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '0';
@@ -206,7 +213,7 @@ architecture behave of TextGenerator is
 			ByteWhiteOutputBuffer <= iByteWhiteOutputBuffer;
 			IntToLogicVectorIntInput <= 0;
 			IntToLogicVectorTrigger <= '0';
-			ByteWhiteOutputTrigger <= '0';		
+			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 8) THEN
 			--Triggert die Ausgabe
 			FiFoRdreq <= '0';
@@ -214,7 +221,7 @@ architecture behave of TextGenerator is
 			IntToLogicVectorIntInput <= 0;
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '1';
-					
+
 		--Erzeugt aus PrintRejectedData den Text: "_____ Messungen verworfen\n\r" & Triggert die Ausgabe
 		ELSIF (PrepareNextLineStep = 10) THEN
 			--Triggert die Wandlung fuer den Wert RejectedData
@@ -223,10 +230,10 @@ architecture behave of TextGenerator is
 			IntToLogicVectorIntInput <= RejectedData;
 			IntToLogicVectorTrigger <= '1';
 			ByteWhiteOutputTrigger <= '0';
-		ELSIF (PrepareNextLineStep = 11) THEN		
+		ELSIF (PrepareNextLineStep = 11) THEN
 			--Wartet bis die Wandlung abgeschlossen ist & die Ausgabe Bereit ist (IntToLogicVectorReady='1' && ByteWhiteOutputReady='1') & Erzeugt den Text "Erzeugt den Text " Messungen verworfen\n\r"
 			FiFoRdreq <= '0';
-			iByteWhiteOutputBuffer(223 downto 8) <= IntToLogicVectorBinOutput(39 DOWNTO 0) & x"204d657373756e67656e20766572776f7266656e0A0D"; --Text " Messungen verworfen\n\r" 
+			iByteWhiteOutputBuffer(223 downto 8) <= IntToLogicVectorBinOutput(39 DOWNTO 0) & x"204d657373756e67656e20766572776f7266656e0A0D"; --Text " Messungen verworfen\n\r"
 			IntToLogicVectorIntInput <= RejectedData;
 			IntToLogicVectorTrigger <= '0';
 			ByteWhiteOutputTrigger <= '0';
@@ -236,15 +243,15 @@ architecture behave of TextGenerator is
 			ByteWhiteOutputBuffer <= iByteWhiteOutputBuffer;
 			IntToLogicVectorIntInput <= 0;
 			IntToLogicVectorTrigger <= '0';
-			ByteWhiteOutputTrigger <= '1';	
+			ByteWhiteOutputTrigger <= '1';
       END IF;
-		
+
 	END IF;
   END process PrepareNextLine;
 
   PrepareNextLineNextState: process(Reset, Clk, EN, FiFoEmpty, PrintRejectedData, IntToLogicVectorReady, ByteWhiteOutputReady)
   BEGIN
-	IF Reset = '1' THEN 
+	IF Reset = '1' THEN
 		PrepareNextLineNextStep <= 0;
 	ELSIF (rising_edge(Clk)) THEN
 		 PrepareNextLineNextStep <= PrepareNextLineStep;
@@ -269,9 +276,9 @@ architecture behave of TextGenerator is
 				PrepareNextLineNextStep <= 8;
 			  WHEN 8 =>
 			   IF (ByteWhiteOutputReady = '0') THEN PrepareNextLineNextStep <= 0; END IF;
-				
+
 			  WHEN 10 =>
-			   IF (IntToLogicVectorReady = '0') THEN PrepareNextLineNextStep <= 11; END IF;		
+			   IF (IntToLogicVectorReady = '0') THEN PrepareNextLineNextStep <= 11; END IF;
 			  WHEN 11 =>
 			   IF (IntToLogicVectorReady = '1') and (ByteWhiteOutputReady = '1') THEN PrepareNextLineNextStep <= 12; END IF;
 			  WHEN 12 =>
