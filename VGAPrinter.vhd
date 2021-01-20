@@ -14,7 +14,7 @@ entity VGAPrinter is
 		acc_z 		 : in integer RANGE -32768 to 32767; 	--z-achse des Sensor Kontroll-Modul; in cm/s^2
 
     data_valid_in : out std_logic := '0';	              --Ausgabe von data valid an das VGA-Modl
-		x_in : out integer range -9999 to 9999 := 0;        --Ausgabe der Beschleunigung der x-achse in cm/s^2 an das VGA-Modul
+	 x_in : out integer range -9999 to 9999 := 0;        --Ausgabe der Beschleunigung der x-achse in cm/s^2 an das VGA-Modul
     y_in : out integer range -9999 to 9999 := 0;        --Ausgabe der Beschleunigung der y-achse in cm/s^2 an das VGA-Modul
     z_in : out integer range -9999 to 9999 := 0         --Ausgabe der Beschleunigung der z-achse in cm/s^2 an das VGA-Modul
 	);
