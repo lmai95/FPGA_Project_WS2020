@@ -40,7 +40,7 @@ BEGIN
 		data_valid => data_valid,		--data valid des Sensor Kontroll-Modul
 		acc_x => acc_x,							--x-achse des Sensor Kontroll-Modul; in cm/s^2
 		acc_y => acc_y,							--y-achse des Sensor Kontroll-Modul; in cm/s^2
-		acc_z => acc_y,							--z-achse des Sensor Kontroll-Modul; in cm/s^2
+		acc_z => acc_z,							--z-achse des Sensor Kontroll-Modul; in cm/s^2
 		TX_BUSY => TX_BUSY,         --TX_Busy der UART
 		TX_EN => TX_EN,             --TX_EN der UART
 		TX_DATA => TX_DATA					--Eingangsbyte der UART; LSB hat Index 0
@@ -54,7 +54,7 @@ BEGIN
 		data_valid => data_valid,				--data valid des Sensor Kontroll-Modul
 		acc_x => acc_x,									--x-achse des Sensor Kontroll-Modul; in cm/s^2
 		acc_y => acc_y,									--y-achse des Sensor Kontroll-Modul; in cm/s^2
-		acc_z => acc_y,									--z-achse des Sensor Kontroll-Modul; in cm/s^2
+		acc_z => acc_z,									--z-achse des Sensor Kontroll-Modul; in cm/s^2
 		data_valid_in => data_valid_in, --Ausgabe von data valid an das VGA-Modl
 		x_in => x_in,										--Ausgabe der Beschleunigung der x-achse in cm/s^2 an das VGA-Modul
 		y_in => y_in,										--Ausgabe der Beschleunigung der y-achse in cm/s^2 an das VGA-Modul
