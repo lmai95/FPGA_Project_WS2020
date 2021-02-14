@@ -13,38 +13,38 @@ FUNCTION print_any_line (
     VARIABLE fp_x : INTGER;
     VARIABLE fp_y : INTGER;
     VARIABLE fp_f : INTGER;
-    
+
 BEGIN
     IF (X >= x_start) AND (X <= X_stop) AND (Y >= y_start) AND (y <= y_stop) THEN --check if in area where the line is drawn
         -- Bresenham-Algorithmus 
-        fp_x := x_start << 4; --bitshift Integervalue to allow for fractions
-        fp_y := y_start << 4; --bitshift Integervalue to allow for fractions
-        fp_dx := (x_stop << 4) - (x_start << 4); --bitshift Integervalue to allow for fractions
-        fp_dy := (y_stop << 4) - (y_start << 4); --bitshift Integervalue to allow for fractions
+        fp_x := x_start * 2; --bitshift Integervalue to allow for fractions
+        fp_y := y_start * 2; --bitshift Integervalue to allow for fractions
+        fp_dx := (x_stop * 2) - (x_start * 2); --bitshift Integervalue to allow for fractions
+        fp_dy := (y_stop * 2) - (y_start * 2); --bitshift Integervalue to allow for fractions
         IF dx > dy THEN --check if x is the fast direction
-            fp_f := fp_dx >> 1; --shift back 1 bit (is equal to halving)
+            fp_f := fp_dx / 2; --shift back 1 bit (is equal to halving)
             FOR I IN x_start TO x_stop LOOP
-                fp_x := fp_x + 1 << 4; --Increment fast direction
+                fp_x := fp_x + 1 * 2; --Increment fast direction
                 fp_f := fp_f - fp_dy; --recalculate the error value with the slow direction
                 IF fp_f < 0 THEN --if error smaler than 0 
                     fp_y := fp_y + 1; --Increment slow direction
                     fp_f := fp_f + fp_dx; --recalculate the error value with the fast direction
                 END IF;
-                IF (fp_y >> 4) = y AND (fp_x >> 4) = x THEN --check if callculated pixel is current pixel 
+                IF (fp_y / 2) = y AND (fp_x / 2) = x THEN --check if callculated pixel is current pixel 
                     RETURN col; --return the RGB value
                 END IF;
             END LOOP;
             RETURN x"000";
         ELSE
-            fp_f := fp_dy >> 1; --shift back 1 bit (is equal to halving)
+            fp_f := fp_dy / 2; --shift back 1 bit (is equal to halving)
             FOR I IN y_start TO y_stop LOOP
-                fp_y := fp_y + 1 << 4; --Increment fast direction
+                fp_y := fp_y + 1 * 2; --Increment fast direction
                 fp_f := fp_f - fp_dx; --recalculate the error value with the slow direction
                 IF fp_f < 0 THEN --if error smaler than 0 
                     fp_x := fp_x + 1; --Increment slow direction
                     fp_f := fp_f + fp_dy; --recalculate the error value with the fast direction
                 END IF;
-                IF (fp_y >> 4) == y AND (fp_x >> 4) == x THEN --check if callculated pixel is current pixel 
+                IF (fp_y / 2) == y AND (fp_x / 2) == x THEN --check if callculated pixel is current pixel 
                     RETURN col; --return the RGB value
                 END IF;
             END LOOP;
