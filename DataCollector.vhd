@@ -73,7 +73,7 @@ BEGIN
 				PrintRejectedData <= '0';
 				iCntRejectedData <= CntRejectedData + 1;
 			WHEN 4 =>
-				--Sampling-Mode: Wartet auf data_valid  '0'
+				--Daten verworfen, Wartet auf data_valid '0'
 				FiFoWrreq <= '0';
 				FiFoData <= (others => '0');
 				PrintRejectedData <= '0';
