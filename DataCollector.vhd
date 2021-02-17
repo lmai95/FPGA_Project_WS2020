@@ -111,10 +111,10 @@ BEGIN
 					WHEN 2 =>
 						IF (data_valid = '0') THEN NextStep <= 0; END IF;
 					WHEN 3 =>
-						IF (FreeRunning = '1') THEN NextStep <= 4; END IF; --FreeRunning-Mode
-						IF (FreeRunning = '0') THEN NextStep <= 4; END IF; --Sampling-Mode
+						NextStep <= 4;
 					WHEN 4 =>
-						IF (data_valid = '0') THEN NextStep <= 5; END IF;
+						IF (data_valid = '0') AND (FreeRunning = '1') THEN NextStep <= 0; END IF;
+						IF (data_valid = '0') AND (FreeRunning = '0') THEN NextStep <= 5; END IF;
 					WHEN 5 =>
 						IF (data_valid = '1') THEN NextStep <= 3; END IF;	--Neue Daten vorhanden
 						IF (FiFoEmpty = '1') THEN NextStep <= 6; END IF;	--FiFo ist leer und kann mit neuen Daten befuellt werden
