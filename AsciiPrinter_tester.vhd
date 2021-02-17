@@ -29,7 +29,7 @@ architecture test of AsciiPrinter_tester is
     (3, 2, 1),
     (4, 3, 2),
 	 (0, 0, 0),
-	 (32767, 404, -32768)	 
+	 (-32768, 0, 32767)	 
   );
   type TestState is record
       EN, Reset, data_valid : std_logic;
