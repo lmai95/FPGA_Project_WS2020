@@ -24,8 +24,17 @@ architecture test of AsciiPrinter_tester is
 	end record;
   type TestValueArray is array (natural range <>) of TestValue;
 	constant TestValues : TestValueArray :=(
+<<<<<<< HEAD
 	 (-32768, -314, 32767),
 	 (19331, 778, -24400)	 
+=======
+    (1, 1, 1),
+    (2, 1, 1),
+    (3, 2, 1),
+    (4, 3, 2),
+	 (0, 0, 0),
+	 (-32768, 0, 32767)	 
+>>>>>>> 3ffa025d40f3c994ee8f0c33e4e86abd487bbd15
   );
   type TestState is record
       EN, Reset, data_valid : std_logic;

@@ -87,7 +87,7 @@ BEGIN
 		  IF (EN = '1') THEN
 				CASE Step IS
 					WHEN 0 =>
-						IF (ByteWhiteOutputTrigger = '1') THEN NextStep <= 1; END IF;
+						IF ((ByteWhiteOutputTrigger = '1') AND (TX_BUSY = '0')) THEN NextStep <= 1; END IF;
 					WHEN 1 =>
 						IF (TX_BUSY = '1') THEN NextStep <= 2; END IF;
 					WHEN 2 =>

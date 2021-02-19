@@ -231,7 +231,7 @@ architecture behave of TextGenerator is
 			IntToLogicVectorTrigger <= '1';
 			ByteWhiteOutputTrigger <= '0';
 		ELSIF (PrepareNextLineStep = 11) THEN
-			--Wartet bis die Wandlung abgeschlossen ist & die Ausgabe Bereit ist (IntToLogicVectorReady='1' && ByteWhiteOutputReady='1') & Erzeugt den Text "Erzeugt den Text " Messungen verworfen\n\r"
+			--Wartet bis die Wandlung abgeschlossen ist & die Ausgabe Bereit ist (IntToLogicVectorReady='1' && ByteWhiteOutputReady='1') & Erzeugt den Text " Messungen verworfen\n\r"
 			FiFoRdreq <= '0';
 			iByteWhiteOutputBuffer(223 downto 8) <= IntToLogicVectorBinOutput(39 DOWNTO 0) & x"204d657373756e67656e20766572776f7266656e0A0D"; --Text " Messungen verworfen\n\r"
 			IntToLogicVectorIntInput <= RejectedData;
@@ -285,7 +285,7 @@ architecture behave of TextGenerator is
 			   IF (ByteWhiteOutputReady = '0') THEN PrepareNextLineNextStep <= 0; END IF;
 
 			  WHEN OTHERS =>
-				 PrepareNextLineNextStep <= 1;
+				 PrepareNextLineNextStep <= 0;
 			END CASE;
 		 END IF;
 	END IF;
