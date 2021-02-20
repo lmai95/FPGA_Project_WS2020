@@ -226,7 +226,7 @@ architecture behave of TextGenerator is
 		ELSIF (PrepareNextLineStep = 10) THEN
 			--Triggert die Wandlung fuer den Wert RejectedData
 			FiFoRdreq <= '0';
-			iByteWhiteOutputBuffer(223 downto 208) <= (others =>'0');
+			iByteWhiteOutputBuffer <= (others =>'0');
 			IntToLogicVectorIntInput <= RejectedData;
 			IntToLogicVectorTrigger <= '1';
 			ByteWhiteOutputTrigger <= '0';
