@@ -57,12 +57,10 @@ architecture behave of TextGenerator is
 			IntToLogicVectorReady <= '1';
 		ELSIF (IntToLogicVectorStep = 1) THEN
 			--Setzt die Ausgabe zurueck
-			iIntToLogicVectorBinOutput <= IntToLogicVectorBinOutput;
 			iIntToLogicVectorBinOutput <= (others =>'0');
 			IntToLogicVectorReady <= '0';
       ELSIF (IntToLogicVectorStep = 2) THEN
         --Ergaenzt das Vorzeichen & erzeugt den absolut Wert
-		  iIntToLogicVectorBinOutput <= IntToLogicVectorBinOutput;
         IF (IntToLogicVectorIntInput < 0) THEN
           iIntToLogicVectorBinOutput(47 downto 40) <= B"00101101"; --Text: "-"
           IntUnderConversion := IntToLogicVectorIntInput*(-1);
@@ -73,7 +71,6 @@ architecture behave of TextGenerator is
 		  IntToLogicVectorReady <= '0';
       ELSIF ((IntToLogicVectorStep >= 3) AND (IntToLogicVectorStep <= 7)) THEN
         --Wandelt nacheinander die Eingabe IntToLogicVectorIntInput in ASCII Zeichen
-		  iIntToLogicVectorBinOutput <= IntToLogicVectorBinOutput;
         Digit := IntUnderConversion mod 10;
         IntUnderConversion := IntUnderConversion/10;
         Case Digit is
