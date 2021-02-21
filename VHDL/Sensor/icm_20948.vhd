@@ -316,7 +316,7 @@ BEGIN
 				o_Accel_X <= (to_integer(signed(r_Accel_X_raw))) * RAW_TO_ACCEL/1000;
 				o_Accel_Y <= (to_integer(signed(r_Accel_Y_raw))) * RAW_TO_ACCEL/1000;
 				o_Accel_Z <= (to_integer(signed(r_Accel_Z_raw))) * RAW_TO_ACCEL/1000;
-				o_DV      <= r_acceleleration_ready;
+				o_DV      <= '1';
 			ELSE
 				o_DV <= '0';
 			END IF;

@@ -101,4 +101,26 @@ set_global_assignment -name VHDL_FILE VHDL/VGA/bitmaps.vhd
 set_global_assignment -name VHDL_FILE VHDL/VGA/alphanumeric_display.vhd
 set_global_assignment -name VHDL_FILE VHDL/xDFF.vhd
 set_global_assignment -name VHDL_FILE VHDL/Projekt_WS2020_2021.vhd
+set_global_assignment -name VHDL_FILE VHDL/signal_processing/AsciiPrinter.vhd
+set_global_assignment -name VHDL_FILE VHDL/signal_processing/AsciiPrinter_tb.vhd
+set_global_assignment -name VHDL_FILE VHDL/signal_processing/AsciiPrinter_tester.vhd
+set_global_assignment -name VHDL_FILE VHDL/signal_processing/ByteWhiteOutput.vhd
+set_global_assignment -name VHDL_FILE VHDL/signal_processing/DataCollector.vhd
+set_global_assignment -name VHDL_FILE VHDL/signal_processing/signal_processing.vhd
+set_global_assignment -name VHDL_FILE VHDL/signal_processing/TextGenerator.vhd
+set_global_assignment -name VHDL_FILE VHDL/signal_processing/VGAPrinter.vhd
+set_global_assignment -name VHDL_FILE VHDL/signal_processing/FiFo48.vhd
+set_global_assignment -name VHDL_FILE VHDL/UART/BAUDGEN.vhd
+set_global_assignment -name VHDL_FILE VHDL/UART/DEBOUNCE.vhd
+set_global_assignment -name VHDL_FILE VHDL/UART/FIFO.vhd
+set_global_assignment -name VHDL_FILE VHDL/UART/RECEIVE_TEST.vhd
+set_global_assignment -name VHDL_FILE VHDL/UART/TIMER4BIT.vhd
+set_global_assignment -name VHDL_FILE VHDL/UART/TIMER12BIT.vhd
+set_global_assignment -name VHDL_FILE VHDL/UART/TRANSCIEVE_TEST.vhd
+set_global_assignment -name VHDL_FILE VHDL/UART/TRANSMIT_TEST.vhd
+set_global_assignment -name VHDL_FILE VHDL/UART/UART.vhd
+set_location_assignment PIN_U21 -to TXD
+set_location_assignment PIN_U22 -to RXD
+set_location_assignment PIN_J1 -to RX_EN
+set_location_assignment PIN_J2 -to RX_ERROR
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

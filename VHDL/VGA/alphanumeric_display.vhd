@@ -48,11 +48,11 @@ ARCHITECTURE behave OF alphanumeric_display IS
 
     COMPONENT Integer2BCD IS
         PORT (
-            x_in  : IN INTEGER RANGE -32768 TO 32767;
+            x_in  : IN INTEGER RANGE -9999 TO 9999;
             x_out : OUT STD_LOGIC_VECTOR(0 TO 16);
-            y_in  : IN INTEGER RANGE -32768 TO 32767;
+            y_in  : IN INTEGER RANGE -9999 TO 9999;
             y_out : OUT STD_LOGIC_VECTOR(0 TO 16);
-            z_in  : IN INTEGER RANGE -32768 TO 32767;
+            z_in  : IN INTEGER RANGE -9999 TO 9999;
             z_out : OUT STD_LOGIC_VECTOR(0 TO 16)
         );
     END COMPONENT;
