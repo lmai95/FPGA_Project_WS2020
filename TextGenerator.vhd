@@ -2,6 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--------------------------------------------------------------------
+--	der Text Generator erzeugt die Ausgangszeichen für die UART
+-- es werden nach einander die Werte für x,y,z erzeugt
+-- Format z.B:"x:+327.67 y:+123.45 z:-327.68" ...
+--------------------------------------------------------------------
 entity TextGenerator is
   generic(
     MaxBitPerByteWhiteOutput : integer := 247 --Legt die Anazahl der Bit's fest (inclusive Wert 0..) die ByteWhiteOutput aufeinmal verarbeitet; ->31 ASCII-Zeichen: 3xacc=18 + 3xPunkt + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
@@ -17,9 +22,9 @@ entity TextGenerator is
 	 PrintRejectedData : in std_logic;						--Bei '1': Die Anzahl der nicht verarbeitbaren Messungen (RejectedData) soll ausgaben werden
     RejectedData : integer RANGE 0 to 65536 := 0; 		--Anzahl der Datensaetze die Verworfen werden mussten
 
-	 ByteWhiteOutputReady : in std_logic;					--Bei '1' bereit die naechste Zeile auszugeben
-    ByteWhiteOutputTrigger : out std_logic;				--Startet die Ausgabe duch den Wert '1'
-    ByteWhiteOutputBuffer : out std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0')--Die Daten/Die Zeile die Ausgegebn werden soll
+	 ByteWhiteOutputReady	: in std_logic;				--Bei '1' bereit die naechste Zeile auszugeben
+    ByteWhiteOutputTrigger	: out std_logic;				--Startet die Ausgabe duch den Wert '1'
+    ByteWhiteOutputBuffer	: out std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0')--Die Daten/Die Zeile die Ausgegebn werden soll
   );
 end entity TextGenerator;
 
@@ -32,17 +37,18 @@ architecture behave of TextGenerator is
   signal IntToLogicVectorStep : integer RANGE 0 to	8 := 0;		--aktueller Zustand der FSM des Prozesses IntToLogicVector
   signal IntToLogicVectorNextStep : integer RANGE 0 to 8 := 0; --naechster Zustand der FSM des Prozesses IntToLogicVector
 
-  signal PrepareNextLineStep : integer Range 0 to 30 := 0;
-  signal PrepareNextLineNextStep : integer Range 0 to 30 := 0;
+  signal PrepareNextLineStep : integer Range 0 to 30 := 0;		--aktueller Zustand der FSM des Prozesses PrepareNextLine
+  signal PrepareNextLineNextStep : integer Range 0 to 30 := 0;	--naechster Zustand der FSM des Prozesses PrepareNextLine
   signal iByteWhiteOutputBuffer : std_logic_vector(MaxBitPerByteWhiteOutput downto 0) := (others =>'0'); --Speicher fuer die Ausgabe der naechsten Zeile; 31 ASCII-Zeichen: 3xacc=18 + 3xPunkt + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
-  BEGIN
-  --Wandelt die (signed) Integer Zahl IntToLogicVectorIntInput in eine ASCII Zeichen-Darstellung. Annahme: 16Bit-Integer daher mit Vorzeichen 6-ASCI Zeichen.
+ BEGIN
+  
+  --Wandelt die (signed) Integer Zahl IntToLogicVectorIntInput in eine ASCII Zeichen-Darstellung. Annahme: 16Bit-Integer daher mit Vorzeichen 6-ASCII Zeichen.
   --Die Umwandlung wird gestartet indem IntToLogicVectorTrigger auf '1' gesetzt wird. Das Ergbnis der Wandlung wird in IntToLogicVectorBinOutput ausgegben.
   --Sobald alle Umwandlungen abgeschlossen sind und eine neue begonnen werden kann wird IntToLogicVectorReady auf '1' gesetzt
   IntToLogicVector: process(Reset, Clk, IntToLogicVectorStep, IntToLogicVectorIntInput)
-    variable IntUnderConversion : integer RANGE 0 to 65536 := 0;
-    variable Digit : integer RANGE 0 to 9 := 0;
-    variable Cutout : std_logic_vector(7 DOWNTO 0) := (others =>'0');
+    variable IntUnderConversion : integer RANGE 0 to 65536 := 0;			--Varibale zur Zwischenspeicherung bei der Konvertierung
+    variable Digit : integer RANGE 0 to 9 := 0;									--Variable zur ASCII Konvertierung
+    variable Cutout : std_logic_vector(7 DOWNTO 0) := (others =>'0');	--Variable zur Maskierung 
   BEGIN
     IF (Reset = '1') THEN
       IntUnderConversion := 0;
@@ -74,9 +80,9 @@ architecture behave of TextGenerator is
       ELSIF ((IntToLogicVectorStep >= 3) AND (IntToLogicVectorStep <= 7)) THEN
         --Wandelt nacheinander die Eingabe IntToLogicVectorIntInput in ASCII Zeichen
 		  iIntToLogicVectorBinOutput <= IntToLogicVectorBinOutput;
-        Digit := IntUnderConversion mod 10;
+        Digit := IntUnderConversion mod 10;	--Zahl wird in umgekehrter Reihenfolge zerlegt
         IntUnderConversion := IntUnderConversion/10;
-        Case Digit is
+        Case Digit is								--Zahlwerte den ASCII Zeichen zuordnen
           WHEN 0 => Cutout := B"00110000";
           WHEN 1 => Cutout := B"00110001";
           WHEN 2 => Cutout := B"00110010";
@@ -89,6 +95,7 @@ architecture behave of TextGenerator is
           WHEN 9 => Cutout := B"00111001";
           WHEN OTHERS => Cutout := B"00111111";--Text "?"
         END CASE;
+		  --Umgewandelte ASCII Zeichen werden wieder in die 
         iIntToLogicVectorBinOutput((47-((8-IntToLogicVectorStep)*8)) DOWNTO (48-(9-IntToLogicVectorStep)*8)) <= Cutout;
 		  IntToLogicVectorReady <= '0';
 		ELSIF (IntToLogicVectorStep = 8) THEN
@@ -98,7 +105,8 @@ architecture behave of TextGenerator is
       END IF;
     END IF;
   end process IntToLogicVector;
-
+  
+--dieser Prozess erzeugt die Schritte für die Zahlen in ASCII Zeichen
   IntToLogicVectorNextState: process(Reset, Clk, EN, IntToLogicVectorStep, IntToLogicVectorTrigger)
   BEGIN
 	IF Reset = '1' THEN
@@ -134,8 +142,6 @@ architecture behave of TextGenerator is
   IntToLogicVectorStep <= IntToLogicVectorNextStep;
   IntToLogicVectorBinOutput <= iIntToLogicVectorBinOutput;
 
-
-  --ToDo Ausgabe der beiden Zaehler mit der Anzahl der verworfenen Messungen
   --Erzeugt einen Text in Ascii-Codierung zur Ausgabe. Ist aktiv falls EN = '1' ist.
   --Erzeugt aus den Daten der FiFo den Text: "x:+/-___.__ y:+/-___.__ z:+/-___.__\n\r", wenn Daten vorhanden sind.
   --Falls PrintRejectedData auf '1' gesetz wird, wird der Text: "+/-_____\n\r" erzeugt.
@@ -249,6 +255,7 @@ architecture behave of TextGenerator is
 	END IF;
   END process PrepareNextLine;
 
+--dieser Prozess erzeugt die Schritte für die Umwandlung in ASCII Bytes
   PrepareNextLineNextState: process(Reset, Clk, EN, FiFoEmpty, PrintRejectedData, IntToLogicVectorReady, ByteWhiteOutputReady)
   BEGIN
 	IF Reset = '1' THEN
@@ -258,8 +265,8 @@ architecture behave of TextGenerator is
 		 IF (EN = '1') THEN
 			CASE PrepareNextLineStep IS
 			  WHEN 0 =>
-				IF (FiFoEmpty = '0') THEN PrepareNextLineNextStep <= 1; END IF;
-				IF (PrintRejectedData = '1') THEN PrepareNextLineNextStep <= 10; END IF;
+				IF (FiFoEmpty = '0') THEN PrepareNextLineNextStep <= 1; END IF;				--Unterscheidung ob Sensorwerte 
+				IF (PrintRejectedData = '1') THEN PrepareNextLineNextStep <= 10; END IF;	--oder ein Warnhinweis mit der Anzahl der  
 			  WHEN 1 =>
 				IF (IntToLogicVectorReady = '0') THEN PrepareNextLineNextStep <= 2; END IF;
 			  WHEN 2 =>
@@ -276,7 +283,6 @@ architecture behave of TextGenerator is
 				PrepareNextLineNextStep <= 8;
 			  WHEN 8 =>
 			   IF (ByteWhiteOutputReady = '0') THEN PrepareNextLineNextStep <= 0; END IF;
-
 			  WHEN 10 =>
 			   IF (IntToLogicVectorReady = '0') THEN PrepareNextLineNextStep <= 11; END IF;
 			  WHEN 11 =>
