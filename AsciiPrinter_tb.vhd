@@ -2,6 +2,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--------------------------------------------------------------------
+--	Testbench des ASCII Printers
+-- "verdrahtet" die zu testend Signale
+--------------------------------------------------------------------
 entity AsciiPrinter_tb is
 end entity AsciiPrinter_tb;
 
@@ -16,12 +20,12 @@ architecture behave of AsciiPrinter_tb is
   signal TX_BUSY : std_logic;
   signal TX_EN : std_logic;
   signal TX_DATA : std_logic_vector(7 downto 0);
-  signal data_valid_in : std_logic := '0';	              --Ausgabe von data valid an das VGA-Modl
+  signal data_valid_in : std_logic := '0';	            --Ausgabe von data valid an das VGA-Modl
   signal x_in : integer range -9999 to 9999 := 0;        --Ausgabe der Beschleunigung der x-achse in cm/s^2 an das VGA-Modul
-  signal	y_in : integer range -9999 to 9999 := 0;        --Ausgabe der Beschleunigung der y-achse in cm/s^2 an das VGA-Modul
-  signal	z_in : integer range -9999 to 9999 := 0;         --Ausgabe de
+  signal	y_in : integer range -9999 to 9999 := 0;        --	  " 	  " 			"			"  y-achse  "   "     "  "     "
+  signal	z_in : integer range -9999 to 9999 := 0;        --	  " 	  " 			"			"  z-achse  "   "     "  "     "
 BEGIN
-  Tester: entity work.AsciiPrinter_tester(test)
+  Tester: entity work.AsciiPrinter_tester(test)				-- Signale des Testers zuweisen
     port map(
       EN => EN,
       Reset => Reset,
@@ -35,7 +39,7 @@ BEGIN
       TX_DATA => TX_DATA
     );
 
-  DUT: entity work.signal_processing(behave)
+  DUT: entity work.signal_processing(behave)					-- Signale der Top-Layer Entity zuweisen
     generic map(
       FreeRunning => '0'
     )
