@@ -2,6 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--------------------------------------------------------------------
+--	Tester des ASCII Printers
+-- 50MHz Takterzeugung, Erzeugung beliebiger Sensorwerte, beliebige
+-- Kombination aus En, Reset und data_valid
+--------------------------------------------------------------------
 entity AsciiPrinter_tester is
 port(
   EN : out std_logic := '1';    --Enable Signal des AsciiPrinters
@@ -9,12 +14,12 @@ port(
   Clk : out std_logic;
 
   data_valid : out std_logic;--data valid des Sensor Kontroll-Modul
-  acc_x : out integer RANGE -32768 to 32767; 		  --x-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  acc_y : out integer RANGE -32768 to 32767; 		  --y-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  acc_z : out integer RANGE -32768 to 32767; 		  --z-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
-  TX_BUSY : out std_logic;                           --TX_Busy der UART
-  TX_EN : in std_logic := '0';                       --TX_EN der UART
-  TX_DATA : in std_logic_vector(7 downto 0) := x"00"  --Eingangsbyte der UART; LSB hat Index 0
+  acc_x : out integer RANGE -32768 to 32767; 		  	--x-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_y : out integer RANGE -32768 to 32767; 		  	--y-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  acc_z : out integer RANGE -32768 to 32767; 		  	--z-achse des Sensor Kontroll-Modul; in m^2; ToDo Range
+  TX_BUSY : out std_logic;                           	--TX_Busy der UART
+  TX_EN : in std_logic := '0';                       	--TX_EN der UART
+  TX_DATA : in std_logic_vector(7 downto 0) := x"00" 	--Eingangsbyte der UART; LSB hat Index 0
 );
 end entity AsciiPrinter_tester;
 
@@ -22,24 +27,15 @@ architecture test of AsciiPrinter_tester is
   type TestValue is record
     acc_x, acc_y, acc_z : integer RANGE -32768 to 32767;
 	end record;
-  type TestValueArray is array (natural range <>) of TestValue;
+  type TestValueArray is array (natural range <>) of TestValue;	--beliebiger Sensorwerte
 	constant TestValues : TestValueArray :=(
-<<<<<<< HEAD
 	 (-32768, -314, 32767),
-	 (19331, 778, -24400)	 
-=======
-    (1, 1, 1),
-    (2, 1, 1),
-    (3, 2, 1),
-    (4, 3, 2),
-	 (0, 0, 0),
-	 (-32768, 0, 32767)	 
->>>>>>> 3ffa025d40f3c994ee8f0c33e4e86abd487bbd15
+	 (19331, 0, -24400)	
   );
   type TestState is record
       EN, Reset, data_valid : std_logic;
   end record;
-  type TestStateArray is array (natural range <>) of TestState;
+  type TestStateArray is array (natural range <>) of TestState;	--beliebige Kombination aus En, Reset, data_valid
   constant TestStates : TestStateArray :=(
     --EN, Reset, data_valid
     ('0', '1', '0'),
@@ -47,21 +43,20 @@ architecture test of AsciiPrinter_tester is
     ('1', '0', '1')
   );
 
-  signal iClk : std_logic :='0';
+  signal iClk : std_logic :='0';												--benötigte Signale setzten
   signal iTX_BUSY : std_logic :='0';
   signal CurrentTestState : integer := 0;
   signal CurrentTestValue : integer := 0;
   signal Clockcount : integer := 0;
 
 BEGIN
-  --Erzeugt Clk mit 50MHz
-  ClockGenerator: PROCESS
+  ClockGenerator: PROCESS					--Erzeugt Clk mit 50MHz
   BEGIN
     iClk	<= not iClk;
     IF iCLK = '0' THEN
       Clockcount <= Clockcount + 1;
     end if;
-    wait for 10ns; --10ns
+    wait for 10ns;
   end process ClockGenerator;
 
   --Simuliert die UART mit 115200 Baud; Dauer ~70µS um 8 Bit zu uebertragen
@@ -83,10 +78,11 @@ BEGIN
     END IF;
   END process UartDelay;
 
-  Testing : PROCESS
+  --zeitliche Abfolge der oben definierten Parameter
+  Testing : PROCESS					
   BEGIN
 	for i in 0 to 32 loop
-		CurrentTestValue <= 0;
+		CurrentTestValue <= 0; 
 		CurrentTestState <= 2;
 		wait for 100ns;
 		CurrentTestState <= 1;
