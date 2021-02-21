@@ -2,6 +2,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--------------------------------------------------------------------
+--	der Daten Kollektor liest die Sensorwerte  
+-- außerdem speichert er die gesammelten Daten in einer FiFo
+--------------------------------------------------------------------
 entity DataCollector is
   generic(
 	 FreeRunning : std_logic := '0'	--Bei '1' FreeRunning-Mode: Daten die nicht verarbeitet werden koennen werden verworfen die Datenerfassung wird natlos fortgesetzt
@@ -17,7 +21,7 @@ entity DataCollector is
     acc_y 		 : in integer RANGE -32768 to 32767; 	--y-achse des Sensor Kontroll-Modul; in cm/s^2
     acc_z 		 : in integer RANGE -32768 to 32767; 	--z-achse des Sensor Kontroll-Modul; in cm/s^2
 
-    FiFoEmpty : in std_logic;		--FiFo ist leer
+    FiFoEmpty : in std_logic;			--FiFo ist leer
 	 FiFoFull : in std_logic;			--FiFo ist voll
 	 FiFoWrreq : out std_logic;		--FiFo Schreibanforderung
     FiFoData : out STD_LOGIC_VECTOR (47 DOWNTO 0) := (others => '0'); --Eingangs Daten der FiFo (acc_x, acc_y, acc_z)
@@ -34,6 +38,7 @@ architecture behave of DataCollector is
   signal CntRejectedData : integer RANGE 0 to 65535 := 0;	--Anzahl der Datensaetze die Verworfen werden mussten
   signal iCntRejectedData : integer RANGE 0 to 65535 := 0;
 BEGIN
+
   --Sammelt die Eingangswerte und legt sie in der FiFo in der Reihenfolge: acc_x, acc_y, acc_z ab.
   --Wenn es dazu kommt dass neue Eingangswerte vorhanden sind aber kein Platz in der FiFo verfuegbar ist werden die Daten verworfen.
   --Es werden nur Messsdaten die zeitlich direkt hintereinander eingeganen sind ausgegeben. 
@@ -95,6 +100,7 @@ BEGIN
 		END IF;
   END process CollectData;
 
+ --dieser Prozess erzeugt die Schritte für das Einlesen der Daten
   CollectDataNextState: process(Reset, Clk, EN, Step, data_valid, FiFoFull)
   BEGIN
 		IF Reset = '1' THEN
@@ -113,7 +119,7 @@ BEGIN
 					WHEN 3 =>
 						NextStep <= 4;
 					WHEN 4 =>
-						IF (data_valid = '0') AND (FreeRunning = '1') THEN NextStep <= 0; END IF;
+						IF (data_valid = '0') AND (FreeRunning = '1') THEN NextStep <= 0; END IF;	--Abfrage nach FiFo Modus
 						IF (data_valid = '0') AND (FreeRunning = '0') THEN NextStep <= 5; END IF;
 					WHEN 5 =>
 						IF (data_valid = '1') THEN NextStep <= 3; END IF;	--Neue Daten vorhanden
