@@ -2,6 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--------------------------------------------------------------------
+--	ByteWhiteOutput gibt den zusammengesetzten ASCII Code aus  
+--------------------------------------------------------------------
 entity ByteWhiteOutput is
   generic(
     MaxBitPerByteWhiteOutput : integer := 247 --Legt die Anazahl der Bit's fest (inclusive Wert 0..) die ByteWhiteOutput aufeinmal verarbeitet; ->31 ASCII-Zeichen: 3xacc=18 + 3xPunkt + Zeilenumbruch=2 + Leerzeichen=2 + Text=6
@@ -78,6 +81,7 @@ BEGIN
 	 END IF;
 	END process ByteWhiteOutput;
 
+	--dieser Prozess erzeugt die Schritte für die Ausgabe an das UART Modul
 	ByteWhiteOutputNextState: process(Reset, Clk, EN, Step, ByteWhiteOutputTrigger, TX_BUSY, iCurrentByte, iTX_DATA, ByteWhiteOutputBuffer)
 	BEGIN
 		IF Reset = '1' THEN
