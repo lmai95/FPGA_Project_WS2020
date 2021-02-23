@@ -1,7 +1,13 @@
 *
 
+!.gitignore
+!*.zip
+!*.url
+!*.png
+!*.jpg
 !*.vhd
 !*.qpf
 !*.qsf
 !*.sdc
 !*.do
+!*/
