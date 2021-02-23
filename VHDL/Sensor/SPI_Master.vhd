@@ -1,165 +1,170 @@
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
-USE ieee.numeric_std.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
-ENTITY SPI_Master IS
-  GENERIC
-  (
-    SPI_MODE          : INTEGER := 0;
-    CLKS_PER_HALF_BIT : INTEGER := 2
-  );
-  PORT (
-    -- Control/Data Signals,
-    i_Rst_L : IN STD_LOGIC;
-    i_Clk   : IN STD_LOGIC;
+entity spi_master is
+	generic (
+		spi_mode          : integer := 0;		-- spi mode according to spi stardard modes
+		clks_per_half_bit : integer := 2		-- main clock edged per half bit on the spi interface
+	);
+	port (
+		-- control signals
+		i_rst_l : in std_logic;
+		i_clk   : in std_logic;
 
-    -- TX (MOSI) Signals
-    i_TX_Byte  : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    i_TX_DV    : IN STD_LOGIC;
-    o_TX_Ready : BUFFER STD_LOGIC;
+		-- tx  signals
+		i_tx_byte   : in std_logic_vector(7 downto 0);	-- transmit buffer
+		i_tx_dv     : in std_logic;						-- start transmit
+		o_tx_ready  : buffer std_logic; 				-- indicates if the transmitter is ready
 
-    -- RX (MISO) Signals		
-    o_RX_DV   : OUT STD_LOGIC;
-    o_RX_Byte : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+		-- rx signals		
+		o_rx_dv   : out std_logic;						-- indeicates if one byte was received
+		o_rx_byte : out std_logic_vector(7 downto 0);	-- receive buffer
 
-    -- SPI Interface
-    o_SPI_Clk  : OUT STD_LOGIC;
-    i_SPI_MISO : IN STD_LOGIC;
-    o_SPI_MOSI : OUT STD_LOGIC
-  );
-END ENTITY SPI_Master;
+		-- spi hardware interface
+		o_spi_clk  : out std_logic;						-- spi clock signal
+		i_spi_miso : in  std_logic;						-- spi master-in slave-out
+		o_spi_mosi : out std_logic						-- spi master-out slave-in
+	);
+end entity spi_master;
 
-ARCHITECTURE RTL OF SPI_Master IS
+architecture rtl of spi_master is
 
-  SIGNAL w_CPOL : STD_LOGIC;
-  SIGNAL w_CPHA : STD_LOGIC;
+	signal r_cpol : std_logic;							-- clock polarity
+	signal r_cpha : std_logic;							-- clock phase
 
-  SIGNAL r_SPI_Clk_Count : INTEGER RANGE 0 TO CLKS_PER_HALF_BIT * 2 - 1;
-  SIGNAL r_SPI_Clk       : STD_LOGIC;
-  SIGNAL r_SPI_Clk_Edges : INTEGER RANGE 0 TO 16;
-  SIGNAL r_Leading_Edge  : STD_LOGIC;
-  SIGNAL r_Trailing_Edge : STD_LOGIC;
-  SIGNAL r_TX_DV         : STD_LOGIC;
-  SIGNAL r_TX_Byte       : STD_LOGIC_VECTOR(7 DOWNTO 0);
+	signal r_spi_clk_count : integer range 0 to clks_per_half_bit*2-1;	-- counter for clock generator
+	signal r_spi_clk       : std_logic;	
+	signal r_spi_clk_edges : integer range 0 to 16;
+	signal r_leading_edge  : std_logic;
+	signal r_falling_edge : std_logic;
+	signal r_tx_dv         : std_logic;
+	signal r_tx_byte       : std_logic_vector(7 downto 0);
 
-  SIGNAL r_RX_Bit_Count : unsigned(2 DOWNTO 0);
-  SIGNAL r_TX_Bit_Count : unsigned(2 DOWNTO 0);
+	signal r_rx_bit_count : unsigned(2 downto 0);		-- 8-bit sized counter
+	signal r_tx_bit_count : unsigned(2 downto 0);
 
-BEGIN
+	begin
+	
+	-- set the clock polarity and clock phase according to the spi mode
+	r_cpol <= '1' when (spi_mode = 2) or (spi_mode = 3) else '0';
+	r_cpha <= '1' when (spi_mode = 1) or (spi_mode = 3) else '0';
 
-  w_CPOL <= '1' WHEN (SPI_MODE = 2) OR (SPI_MODE = 3) ELSE
-    '0';
-  w_CPHA <= '1' WHEN (SPI_MODE = 1) OR (SPI_MODE = 3) ELSE
-    '0';
+	-- clock_generator: generate spi clock when the tx-dv signal is set
+	clock_generator : process (i_clk, i_rst_l)
+	begin
+		if i_rst_l = '0' then
+			o_tx_ready      <= '0';
+			r_spi_clk_edges <= 0;
+			r_leading_edge  <= '0';
+			r_falling_edge <= '0';
+			r_spi_clk       <= r_cpol;
+			r_spi_clk_count <= 0;
+			
+		elsif rising_edge(i_clk) then
 
-  -- Purpose: Generate SPI Clock correct number of times when DV pulse comes
-  Edge_Indicator : PROCESS (i_Clk, i_Rst_L)
-  BEGIN
-    IF i_Rst_L = '0' THEN
-      o_TX_Ready      <= '0';
-      r_SPI_Clk_Edges <= 0;
-      r_Leading_Edge  <= '0';
-      r_Trailing_Edge <= '0';
-      r_SPI_Clk       <= w_CPOL;
-      r_SPI_Clk_Count <= 0;
-    ELSIF rising_edge(i_Clk) THEN
+			-- default
+			r_leading_edge  <= '0';
+			r_falling_edge <= '0';
+			-- wait for tx-dv
+			if i_tx_dv = '1' then
+				o_tx_ready      <= '0';
+				r_spi_clk_edges <= 16;
+			elsif r_spi_clk_edges > 0 then
+				o_tx_ready <= '0';
+			-- create falling edged on uneven numbers
+			if r_spi_clk_count = clks_per_half_bit*2-1 then
+				r_spi_clk_edges <= r_spi_clk_edges - 1;
+				r_falling_edge <= '1';
+				r_spi_clk_count <= 0;
+				r_spi_clk       <= not r_spi_clk;
+			-- create rising edge on even numbers
+			elsif r_spi_clk_count = clks_per_half_bit-1 then
+				r_spi_clk_edges <= r_spi_clk_edges - 1;
+				r_leading_edge  <= '1';
+				r_spi_clk_count <= r_spi_clk_count + 1;
+				r_spi_clk       <= not r_spi_clk;
+			else
+			-- keep counting up
+				r_spi_clk_count <= r_spi_clk_count + 1;
+			end if;
+			else
+			-- indicate that the spi master is ready when finsihed sending one byte
+				o_tx_ready <= '1';
+			end if;
+		end if;
+	end process clock_generator;
 
-      -- Default assignments
-      r_Leading_Edge  <= '0';
-      r_Trailing_Edge <= '0';
+	-- tx_byte_reg: save the transmt byte from the transmit buffer if tx-dv is set
+	tx_byte_reg : process (i_clk, i_rst_l)
+	begin
+		-- reset module
+		if i_rst_l = '0' then
+			r_tx_byte <= x"00";
+			r_tx_dv   <= '0';
+		elsif rising_edge(i_clk) then
+			r_tx_dv <= i_tx_dv;
+			if i_tx_dv = '1' then
+				-- save teh byte from the tx-buffer
+				r_tx_byte <= i_tx_byte;
+			end if;
+		end if;
+	end process tx_byte_reg;
 
-      IF i_TX_DV = '1' THEN
-        o_TX_Ready      <= '0';
-        r_SPI_Clk_Edges <= 16;
-      ELSIF r_SPI_Clk_Edges > 0 THEN
-        o_TX_Ready <= '0';
-        -- fallende flanke erzeugen
-        IF r_SPI_Clk_Count = CLKS_PER_HALF_BIT * 2 - 1 THEN
-          r_SPI_Clk_Edges <= r_SPI_Clk_Edges - 1;
-          r_Trailing_Edge <= '1';
-          r_SPI_Clk_Count <= 0;
-          r_SPI_Clk       <= NOT r_SPI_Clk;
-          -- steigende flanke erzeugen
-        ELSIF r_SPI_Clk_Count = CLKS_PER_HALF_BIT - 1 THEN
-          r_SPI_Clk_Edges <= r_SPI_Clk_Edges - 1;
-          r_Leading_Edge  <= '1';
-          r_SPI_Clk_Count <= r_SPI_Clk_Count + 1;
-          r_SPI_Clk       <= NOT r_SPI_Clk;
-        ELSE
-          -- weiterzaelen
-          r_SPI_Clk_Count <= r_SPI_Clk_Count + 1;
-        END IF;
-      ELSE
-        -- wieder freigeben
-        o_TX_Ready <= '1';
-      END IF;
-    END IF;
-  END PROCESS Edge_Indicator;
-  -- Purpose: Register i_TX_Byte when Data Valid is pulsed.
-  -- Keeps local storage of byte in case higher level module changes the data
-  Byte_Reg : PROCESS (i_Clk, i_Rst_L)
-  BEGIN
-    IF i_Rst_L = '0' THEN
-      r_TX_Byte <= X"00";
-      r_TX_DV   <= '0';
-    ELSIF rising_edge(i_clk) THEN
-      r_TX_DV <= i_TX_DV;
-      IF i_TX_DV = '1' THEN
-        r_TX_Byte <= i_TX_Byte;
-      END IF;
-    END IF;
-  END PROCESS Byte_Reg;
-  -- Purpose: Generate MOSI data
-  MOSI_Data : PROCESS (i_Clk, i_Rst_L)
-  BEGIN
-    IF i_Rst_L = '0' THEN
-      o_SPI_MOSI     <= '0';
-      r_TX_Bit_Count <= "111";
-    ELSIF rising_edge(i_Clk) THEN
-      -- If ready is high, reset bit counts to default
-      IF o_TX_Ready = '1' THEN
-        r_TX_Bit_Count <= "111";
+	-- spi_send: transmit sone byte according to the spi mode settings
+	spi_send : process (i_clk, i_rst_l)
+	begin
+		if i_rst_l = '0' then
+		o_spi_mosi     <= '0';
+		r_tx_bit_count <= "111";
+		elsif rising_edge(i_clk) then
+			-- reset bit-counter
+			if o_tx_ready = '1' then
+				r_tx_bit_count <= "111";
+			-- clock phase is not set
+			elsif (r_tx_dv = '1' and r_cpha = '0') then
+				o_spi_mosi     <= r_tx_byte(7);
+				r_tx_bit_count <= "110";
+			-- clock phase is set
+			elsif (r_leading_edge = '1' and r_cpha = '1') or (r_falling_edge = '1' and r_cpha = '0') then
+				r_tx_bit_count <= r_tx_bit_count - 1;
+				o_spi_mosi     <= r_tx_byte(to_integer(r_tx_bit_count));
+			end if;
+		end if;
+	end process spi_send;
 
-        -- Catch the case where we start transaction and CPHA = 0
-      ELSIF (r_TX_DV = '1' AND w_CPHA = '0') THEN
-        o_SPI_MOSI     <= r_TX_Byte(7);
-        r_TX_Bit_Count <= "110";
-      ELSIF (r_Leading_Edge = '1' AND w_CPHA = '1') OR (r_Trailing_Edge = '1' AND w_CPHA = '0') THEN
-        r_TX_Bit_Count <= r_TX_Bit_Count - 1;
-        o_SPI_MOSI     <= r_TX_Byte(to_integer(r_TX_Bit_Count));
-      END IF;
-    END IF;
-  END PROCESS MOSI_Data;
-  -- Purpose: Read in MISO data.
-  MISO_Data : PROCESS (i_Clk, i_Rst_L)
-  BEGIN
-    IF i_Rst_L = '0' THEN
-      o_RX_Byte      <= X"00";
-      o_RX_DV        <= '0';
-      r_RX_Bit_Count <= "111";
-    ELSIF rising_edge(i_Clk) THEN
-      -- Default Assignments
-      o_RX_DV <= '0';
+	-- spi_receive: receive one byte from the spi interface
+	spi_receive : process (i_clk, i_rst_l)
+	begin
+		-- reset
+		if i_rst_l = '0' then
+			o_rx_byte      <= x"00";
+			o_rx_dv        <= '0';
+			r_rx_bit_count <= "111";
+		elsif rising_edge(i_clk) then
+			-- default
+			o_rx_dv <= '0';
+		if o_tx_ready = '1' then
+			r_rx_bit_count <= "111";
+		-- either sample on leasing or falling edge depending on spi mode
+		elsif (r_leading_edge = '1' and r_cpha = '0') or (r_falling_edge = '1' and r_cpha = '1') then
+			o_rx_byte(to_integer(r_rx_bit_count)) <= i_spi_miso;
+			r_rx_bit_count <= r_rx_bit_count - 1;
+			if r_rx_bit_count = "000" then
+				o_rx_dv <= '1';
+			end if;
+			end if;
+		end if;
+	end process spi_receive;
 
-      IF o_TX_Ready = '1' THEN
-        r_RX_Bit_Count <= "111";
-      ELSIF (r_Leading_Edge = '1' AND w_CPHA = '0') OR (r_Trailing_Edge = '1' AND w_CPHA = '1') THEN
-        o_RX_Byte(to_integer(r_RX_Bit_Count)) <= i_SPI_MISO;
-        r_RX_Bit_Count                        <= r_RX_Bit_Count - 1;
-        IF r_RX_Bit_Count = "000" THEN
-          o_RX_DV <= '1';
-        END IF;
-      END IF;
-    END IF;
-  END PROCESS MISO_Data;
-  -- Purpose: Add clock delay to signals for alignment.
-  SPI_Clock : PROCESS (i_Clk, i_Rst_L)
-  BEGIN
-    IF i_Rst_L = '0' THEN
-      o_SPI_Clk <= w_CPOL;
-    ELSIF rising_edge(i_Clk) THEN
-      o_SPI_Clk <= r_SPI_Clk;
-    END IF;
-  END PROCESS SPI_Clock;
+	-- spi_clock_delay: delay the spi clock by one clock cycle so synchronize the output with the design
+	spi_clock_delay : process (i_clk, i_rst_l)
+	begin
+		if i_rst_l = '0' then
+			o_spi_clk  <= r_cpol;
+		elsif rising_edge(i_clk) then
+			o_spi_clk <= r_spi_clk;
+		end if;
+	end process spi_clock_delay;
 
-END ARCHITECTURE RTL;
+end architecture rtl;

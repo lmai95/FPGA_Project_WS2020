@@ -1,35 +1,36 @@
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
-USE ieee.numeric_std.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
-ENTITY xDFF IS
+entity xDFF is 
 
-	PORT (
-		D     : IN STD_LOGIC;
-		Clk   : IN STD_LOGIC;
-		Reset : IN STD_LOGIC;
-		En    : IN STD_LOGIC;
-		Q     : OUT STD_LOGIC := '0'
-	);
-END ENTITY;
+	port (
+		D 		: in std_logic;
+		Clk		: in std_logic;
+		Reset 	: in std_logic;
+		En 		: in std_logic;
+		Q		: out std_logic := '0'
+		);
+end entity;
 
-ARCHITECTURE behave OF xDFF IS
+architecture behave of xDFF is
 
-BEGIN
+begin
 
-	clocked : PROCESS (Reset, Clk, En)
+	clocked: process(Reset, Clk, En)
 
-	BEGIN
+		begin
 
-		IF (Reset = '1') THEN
-			Q <= '0';
-
-		ELSIF rising_edge(Clk) THEN
-			IF En = '1' THEN
-				Q <= D;
-			END IF;
-		END IF;
-
-	END PROCESS clocked;
-
-END ARCHITECTURE behave;
+			if (Reset = '1') then
+				Q <= '0';
+				
+			elsif rising_edge(Clk) then
+				if En = '1' then
+					Q <= D;
+				end if;
+			end if;
+			
+		end process clocked;
+	
+end architecture behave;
+	
